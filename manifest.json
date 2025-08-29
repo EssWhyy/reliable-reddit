@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Reddit Extra Info",
+  "version": "1.0",
+  "description": "Displays extra info (like upvote ratio) on Reddit posts.",
+  "permissions": ["activeTab", "scripting"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/r/*/comments/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
