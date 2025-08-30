@@ -1,4 +1,4 @@
-function waitForElement(selector, callback) {
+function waitForElement(selector: string, callback: (el: Element) => void): void {
   const el = document.querySelector(selector);
   if (el) {
     callback(el);
@@ -16,19 +16,32 @@ function waitForElement(selector, callback) {
   observer.observe(document, { childList: true, subtree: true });
 }
 
-function calculateVoteComposition(ratio, netVotes) {
-  // Returns in the form of upvotes and downvotes
+function calculateVoteComposition(ratio: number, netVotes: number): [number, number] {
+  // Returns in the form of [upvotes, downvotes]
   if (ratio <= 0.5) {
-    return [0,0]
+    return [0, 0];
   }
-  
-  const upvotes = Math.round(netVotes / ratio)
-  const downvotes = upvotes - netVotes
 
-  return [upvotes, downvotes]
+  const upvotes = Math.round(netVotes / ratio);
+  const downvotes = upvotes - netVotes;
+
+  return [upvotes, downvotes];
 }
 
-async function loadPostInfo() {
+// Reddit API response structure (simplified)
+interface RedditListing {
+  data: {
+    children: { data: RedditPost }[];
+  };
+}
+
+interface RedditPost {
+  upvote_ratio: number;
+  ups: number;
+  downs?: number;
+}
+
+async function loadPostInfo(): Promise<void> {
   // Only run on post pages
   if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
 
@@ -40,13 +53,12 @@ async function loadPostInfo() {
 
   try {
     const response = await fetch(jsonUrl);
-    const data = await response.json();
+    const data: [RedditListing, unknown] = await response.json();
 
-    const postInfo = data[0].data.children[0].data;
+    const postInfo: RedditPost = data[0].data.children[0].data;
     const ratio = postInfo.upvote_ratio;
     const ups = postInfo.ups;
-    const downs = postInfo.downs ?? "N/A";
-
+    const downs = postInfo.downs ?? NaN;
 
     // Create info box
     const infoBox = document.createElement("div");
@@ -61,16 +73,16 @@ async function loadPostInfo() {
       font-family:sans-serif;
     `;
 
-    const upVoteRatio = calculateVoteComposition(ratio, ups)
-    const upvotes = upVoteRatio[0]
-    const downvotes = upVoteRatio[1]
-    infoBox.innerText = `📊 Upvote ratio: ${ratio}% | 👍 ${upvotes} | 👎 ${downvotes}`;
 
+    const [upvotes, downvotes] = calculateVoteComposition(ratio, ups);
+    infoBox.innerText = `📊 Upvote ratio: ${ratio * 100}% | 👍 ${upvotes} | 👎 ${downvotes}`;
+
+    console.log(infoBox.innerText)
     // Insert after post title (fallback: body top)
     waitForElement("h1", (titleEl) => {
+      console.log('flan')
       titleEl.insertAdjacentElement("afterend", infoBox);
     });
-
   } catch (e) {
     console.error("Failed to fetch Reddit JSON", e);
   }
