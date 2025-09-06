@@ -47,12 +47,24 @@ const RedditInfoBox: React.FC = () => {
 
   return (
     <div style={boxStyle}>
-      📊 Upvote ratio: {(postInfo.ratio * 100).toFixed(1)}% | 👍 {postInfo.upvotes} | 👎 {postInfo.downvotes}
+      👍 {postInfo.upvotes} | 👎 {postInfo.downvotes}
       <MultiProgress
 			elements={[
+        {
+					value: (postInfo.ratio * 100),
+					color: "#FF4500",
+					showPercentage: true,
+					fontSize: 10,
+					textColor: "white",
+					isBold: true,
+				},
 				{
-					value: 35,
-					color: "blue",
+					value: ((1 - postInfo.ratio) * 100),
+					color: "#6A5CFF",
+					showPercentage: true,
+					textColor: "white",
+					fontSize: 10,
+					isBold: false,
 				},
 			]}
 		/>
