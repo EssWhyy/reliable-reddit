@@ -47,23 +47,19 @@ const RedditInfoBox: React.FC = () => {
 
   return (
     <div style={boxStyle}>
-      👍 {postInfo.upvotes} | 👎 {postInfo.downvotes}
+      {(postInfo.ratio * 100) + "% upvoted"} | ⬆️ {postInfo.upvotes} | ⬇️ {postInfo.downvotes}
       <MultiProgress
 			elements={[
         {
-					value: (postInfo.ratio * 100),
+					value: Number((postInfo.ratio * 100).toFixed(0)),
 					color: "#FF4500",
-					showPercentage: true,
-					fontSize: 10,
-					textColor: "white",
+          height: "16px",
 					isBold: true,
 				},
 				{
-					value: ((1 - postInfo.ratio) * 100),
+					value: Number((postInfo.ratio * 100).toFixed(0)),
 					color: "#6A5CFF",
-					showPercentage: true,
-					textColor: "white",
-					fontSize: 10,
+          height: "16px",
 					isBold: false,
 				},
 			]}
@@ -73,13 +69,16 @@ const RedditInfoBox: React.FC = () => {
 };
 
 const boxStyle: React.CSSProperties = {
+  width: "40%",
   padding: "10px",
   background: "#fff8e1",
   border: "1px solid #ccc",
   borderRadius: "8px",
+  color: "black",
   margin: "10px 0",
   fontSize: "14px",
   fontFamily: "sans-serif",
+  fontWeight: "bold",
 };
 
 export default RedditInfoBox;
