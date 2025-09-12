@@ -17,7 +17,7 @@ const RedditInfoBox: React.FC = () => {
     const fetchPostData = async () => {
       const u = new URL(window.location.href.replace(/\/$/, ""));
       const jsonUrl = u.origin + u.pathname + ".json";
-      
+
       try {
         const response = await fetch(jsonUrl);
         const data: [any, unknown] = await response.json();
@@ -25,6 +25,9 @@ const RedditInfoBox: React.FC = () => {
         const postData = data[0].data.children[0].data;
         const ratio: number = postData.upvote_ratio;
         const ups: number = postData.ups;
+
+        console.log(postData)
+        console.log()
 
         const estimatedUpvotes = Math.round(ups / ratio);
         const estimatedDownvotes = estimatedUpvotes - ups;
@@ -58,7 +61,7 @@ const RedditInfoBox: React.FC = () => {
 					isBold: true,
 				},
 				{
-					value: Number((postInfo.ratio * 100).toFixed(0)),
+					value: Number(((1-postInfo.ratio) * 100).toFixed(0)),
 					color: "#6A5CFF",
           height: "16px",
 					isBold: false,
