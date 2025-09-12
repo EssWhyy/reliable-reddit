@@ -5,6 +5,14 @@ import RedditInfoBox from "./RedditInfoBox.tsx";
 
 const POST_URL_RE = /reddit\.com\/r\/.+\/comments\//;
 
+function getPostBaseUrl(url: string): string {
+  // Strip off query string and hash
+  const u = new URL(url);
+  // Keep only scheme + host + path up to the post id
+  // Example: https://www.reddit.com/r/foo/comments/abc123/post_title/
+  return u.origin + u.pathname.split("?")[0].split("#")[0];
+}
+
 function waitForElement(selector: string): Promise<Element> {
   return new Promise((resolve) => {
     const existing = document.querySelector(selector);
@@ -60,8 +68,11 @@ async function inject() {
   const titleEl = (await waitForElement("h1")) as HTMLElement;
 
   // If already injected for this URL, do nothing
+  const baseUrl = getPostBaseUrl(location.href);
+
+  // If already injected for this post, do nothing
   const existing = document.getElementById("reddit-info-box-container");
-  if (existing && existing.dataset.url === location.href) return;
+  if (existing && existing.dataset.url === baseUrl) return;
 
   // Clean up any old instance (from previous post)
   if (existing) {
