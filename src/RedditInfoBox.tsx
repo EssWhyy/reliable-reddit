@@ -15,12 +15,13 @@ const RedditInfoBox: React.FC = () => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
 
     const fetchPostData = async () => {
-      const jsonUrl = window.location.href.replace(/\/$/, "") + ".json";
-
+      const u = new URL(window.location.href.replace(/\/$/, ""));
+      const jsonUrl = u.origin + u.pathname + ".json";
+      
       try {
         const response = await fetch(jsonUrl);
         const data: [any, unknown] = await response.json();
-
+        
         const postData = data[0].data.children[0].data;
         const ratio: number = postData.upvote_ratio;
         const ups: number = postData.ups;
