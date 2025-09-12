@@ -27,9 +27,6 @@ const RedditInfoBox: React.FC = () => {
         const ratio: number = postData.upvote_ratio;
         const ups: number = postData.ups;
 
-        console.log(postData)
-        console.log()
-
         const estimatedUpvotes = Math.round(ups / ratio);
         const estimatedDownvotes = estimatedUpvotes - ups;
 
@@ -52,7 +49,14 @@ const RedditInfoBox: React.FC = () => {
 
   return (
     <div style={boxStyle}>
-      {(postInfo.ratio * 100) + "% upvoted"} | ⬆️ {postInfo.upvotes} | ⬇️ {postInfo.downvotes}
+    {Number((postInfo.ratio * 100).toFixed(0)) + "% upvoted"} |{" "}
+    {postInfo.ratio <= 0.5 ? (
+      <>Vote count unavailable</>
+    ) : (
+      <>
+        ⬆️ {postInfo.upvotes} | ⬇️ {postInfo.downvotes}
+      </>
+    )}
       <MultiProgress
 			elements={[
         {
