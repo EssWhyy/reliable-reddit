@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MultiProgress from "react-multi-progress";
+import "./redditInfoBox.css"
 
 interface PostInfo {
   ratio: number;
@@ -67,6 +68,7 @@ const RedditInfoBox: React.FC = () => {
 					isBold: false,
 				},
 			]}
+      className="sendToBack"
 		/>
     </div>
   );
@@ -83,6 +85,8 @@ const boxStyle: React.CSSProperties = {
   fontSize: "14px",
   fontFamily: "sans-serif",
   fontWeight: "bold",
+  position: "relative", 
+  zIndex: 0
 };
 
 export default RedditInfoBox;
