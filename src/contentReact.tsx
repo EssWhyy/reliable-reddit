@@ -1,15 +1,14 @@
 // contentReact.tsx
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
-import RedditInfoBox from "./RedditInfoBox.tsx";
+import RedditInfoBox from "./RedditInfoBox";
 
 const POST_URL_RE = /reddit\.com\/r\/.+\/comments\//;
 
 function getPostBaseUrl(url: string): string {
   // Strip off query string and hash
-  const u = new URL(url);
-  // Keep only scheme + host + path up to the post id
   // Example: https://www.reddit.com/r/foo/comments/abc123/post_title/
+  const u = new URL(url);
   return u.origin + u.pathname.split("?")[0].split("#")[0];
 }
 
@@ -55,22 +54,18 @@ function onUrlChange(callback: () => void) {
     return r;
   } as typeof history.replaceState;
 
-  // Back/forward
   window.addEventListener("popstate", fire);
 }
 
 let root: Root | null = null;
 
 async function inject() {
-  // Only on post pages
   if (!POST_URL_RE.test(location.href)) return;
 
   const titleEl = (await waitForElement("h1")) as HTMLElement;
-
-  // If already injected for this URL, do nothing
   const baseUrl = getPostBaseUrl(location.href);
 
-  // If already injected for this post, do nothing
+
   const existing = document.getElementById("reddit-info-box-container");
   if (existing && existing.dataset.url === baseUrl) return;
 
@@ -87,12 +82,10 @@ async function inject() {
   titleEl.insertAdjacentElement("afterend", container);
 
   root = createRoot(container);
-  // Key by URL to force re-mount so useEffect([]) runs for new posts
   root.render(<RedditInfoBox key={location.href} />);
 }
 
 function boot() {
-  // Initial try + keep trying while DOM builds
   inject();
 
   // Keep an observer running so late-arriving DOM still triggers injection

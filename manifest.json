@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Reddit Extra Info",
   "version": "1.0",
-  "description": "Displays extra info (like upvote ratio) on Reddit posts.",
+  "description": "Displays useful info on Reddit posts on New Desktop Reddit UI.",
   "permissions": ["activeTab", "scripting"],
   "content_scripts": [
     {
