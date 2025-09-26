@@ -8,18 +8,27 @@ interface PostInfo {
   downvotes: number;
 }
 
+interface OpData {
+  karma : number;
+  commentKarma : number;
+  postKarma : number;
+  cakeDay: string;
+}
+
 const RedditInfoBox: React.FC = () => {
+  const [opData, setOpData] = useState<OpData | null>(null);
   const [postInfo, setPostInfo] = useState<PostInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
 
-    const fetchPostData = async () => {
+    const fetchVoteData = async () => {
       const u = new URL(window.location.href.replace(/\/$/, ""));
       const jsonUrl = u.origin + u.pathname + ".json";
 
       try {
+        //upvote/downvote info
         const response = await fetch(jsonUrl);
         const data: [any, unknown] = await response.json();
         
@@ -41,11 +50,55 @@ const RedditInfoBox: React.FC = () => {
       }
     };
 
-    fetchPostData();
+    const fetchOPData = async () => {
+      const tracker = document.querySelector('faceplate-tracker[noun="user_profile"]');
+      if (!tracker) return;
+
+      const usernameEl = tracker.querySelector("a.author-name");
+      if (!usernameEl) return;
+
+      const username = usernameEl.textContent.trim();
+
+      try {
+        const resp = await fetch(`https://www.reddit.com/user/${username}/about.json`);
+        if (!resp.ok) return;
+        
+        const json = await resp.json();
+        const data = json.data;
+
+        const karma: number = data.total_karma;
+        const commentKarma: number = data.comment_karma;
+        const postKarma: number = data.link_karma
+        const cakeDay: string = new Date(data.created_utc * 1000).toLocaleDateString();
+
+        
+        setOpData({
+          karma,
+          commentKarma,
+          postKarma,
+          cakeDay
+        });
+
+        // Create element
+        const info = document.createElement("span");
+        info.textContent = ` • ${postKarma} post karma • ${commentKarma} comment karma • Cake Day: ${cakeDay}`;
+
+        tracker.appendChild(info);
+      } catch (e) {
+        console.error("Failed to fetch user info", e);
+      }
+    }
+    
+    fetchVoteData();
+    fetchOPData();
   }, []);
 
   if (error) return <div style={boxStyle}>❌ {error}</div>;
-  if (!postInfo) return null;
+  if (!postInfo || !opData) return null;
+
+
+  const isPossibleBotAccount: boolean = (opData.commentKarma / opData.postKarma) < 0.01;
+  const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= 2678400;
 
   return (
     <div style={boxStyle}>
@@ -74,6 +127,10 @@ const RedditInfoBox: React.FC = () => {
 			]}
       className="sendToBack"
 		/>
+
+
+    {isNewAccount && <p>🍼 OP is a new account, under 1 month old</p>}
+    {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma </p>}
     </div>
   );
 };
