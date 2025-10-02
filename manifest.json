@@ -9,5 +9,10 @@
       "matches": ["*://*.reddit.com/r/*/comments/*"],
       "js": ["dist/content.js"]
     }
-  ]
+  ],
+  "icons": 
+  { "16": "images/icon_20x20.png",
+    "48": "images/icon_48x48.png",
+    "128": "images/icon_128x128.png"
+  }
 }

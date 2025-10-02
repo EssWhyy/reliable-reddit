@@ -81,7 +81,9 @@ const RedditInfoBox: React.FC = () => {
 
         // Create element
         const info = document.createElement("span");
-        info.textContent = ` • ${postKarma} post karma • ${commentKarma} comment karma • Cake Day: ${cakeDay}`;
+        info.textContent = ` • Cake Day: ${cakeDay} • ${postKarma} post karma • ${commentKarma} comment karma`;
+        info.style.fontStyle = "bold";
+
 
         tracker.appendChild(info);
       } catch (e) {
@@ -97,8 +99,8 @@ const RedditInfoBox: React.FC = () => {
   if (!postInfo || !opData) return null;
 
 
-  const isPossibleBotAccount: boolean = (opData.commentKarma / opData.postKarma) < 0.01;
-  const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= 2678400;
+  const isPossibleBotAccount: boolean = opData.postKarma >= 1000 && (opData.commentKarma / opData.postKarma) < 0.01; // Comment karma <1% of Post Karma
+  const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= 2678400; // Less than 1 month old
 
   return (
     <div style={boxStyle}>
