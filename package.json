@@ -1,4 +1,6 @@
 {
+  "name": "reddit-upvote-bar",
+  "version": "1.0.0",
   "type": "module",
   "devDependencies": {
     "@types/chrome": "^0.1.4",

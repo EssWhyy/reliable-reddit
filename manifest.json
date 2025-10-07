@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Reddit Extra Info",
+  "name": "Reddit Upvote Bar",
   "version": "1.0",
   "description": "Displays useful info on Reddit posts on New Desktop Reddit UI.",
   "permissions": ["activeTab", "scripting"],
   "action": {
-    "default_popup": "dist/src/popup/index.html"
+    "default_popup": "popup/index.html"
   },
   "content_scripts": [
     {

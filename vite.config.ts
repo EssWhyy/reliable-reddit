@@ -4,14 +4,14 @@ import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // 👈 critical for extensions to use relative asset paths
+  base: './',
   build: {
     outDir: 'dist',
-    emptyOutDir: false, // keep other built files (like background/content)
+    emptyOutDir: false,
+    target: 'es2017',
     rollupOptions: {
       input: {
-        content: path.resolve(__dirname, 'src/contentReact.tsx'),
-        popup: path.resolve(__dirname, 'src/popup/index.html'), // 👈 added popup entry
+        popup: path.resolve(__dirname, 'src/popup/index.html'),
       },
       output: {
         entryFileNames: '[name].js',
