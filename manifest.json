@@ -4,6 +4,9 @@
   "version": "1.0",
   "description": "Displays useful info on Reddit posts on New Desktop Reddit UI.",
   "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "dist/src/popup/index.html"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.reddit.com/r/*/comments/*"],

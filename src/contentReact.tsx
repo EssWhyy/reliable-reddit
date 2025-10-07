@@ -1,5 +1,4 @@
 // contentReact.tsx
-import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import RedditInfoBox from "./RedditInfoBox";
 
@@ -7,7 +6,6 @@ const POST_URL_RE = /reddit\.com\/r\/.+\/comments\//;
 
 function getPostBaseUrl(url: string): string {
   // Strip off query string and hash
-  // Example: https://www.reddit.com/r/foo/comments/abc123/post_title/
   const u = new URL(url);
   return u.origin + u.pathname.split("?")[0].split("#")[0];
 }
@@ -41,24 +39,25 @@ function onUrlChange(callback: () => void) {
 
   // History API hooks
   const _push = history.pushState;
-  history.pushState = function (...args) {
-    const r = _push.apply(this, args as any);
+  history.pushState = function (this: History, ...args: Parameters<History['pushState']>) {
+    const r = _push.apply(this, args);
     fire();
     return r;
   } as typeof history.pushState;
 
   const _replace = history.replaceState;
-  history.replaceState = function (...args) {
-    const r = _replace.apply(this, args as any);
+  history.replaceState = function (this: History, ...args: Parameters<History['replaceState']>) {
+    const r = _replace.apply(this, args);
     fire();
     return r;
   } as typeof history.replaceState;
 
-  window.addEventListener("popstate", fire);
-}
+    window.addEventListener("popstate", fire);
+  }
 
 let root: Root | null = null;
 
+// Logic to inject Reddit Upvote Bar into DOM
 async function inject() {
   if (!POST_URL_RE.test(location.href)) return;
 

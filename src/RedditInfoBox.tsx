@@ -24,11 +24,11 @@ const RedditInfoBox: React.FC = () => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
 
     const fetchVoteData = async () => {
+      // upvote/downvote info
       const u = new URL(window.location.href.replace(/\/$/, ""));
       const jsonUrl = u.origin + u.pathname + ".json";
 
       try {
-        //upvote/downvote info
         const response = await fetch(jsonUrl);
         const data: [any, unknown] = await response.json();
         
@@ -51,6 +51,7 @@ const RedditInfoBox: React.FC = () => {
     };
 
     const fetchOPData = async () => {
+      // Information on Poster
       const tracker = document.querySelector('faceplate-tracker[noun="user_profile"]');
       if (!tracker) return;
 
@@ -106,7 +107,7 @@ const RedditInfoBox: React.FC = () => {
     <div style={boxStyle}>
     {Number((postInfo.ratio * 100).toFixed(0)) + "% upvoted"} |{" "}
     {postInfo.ratio <= 0.5 ? (
-      <>Vote count unavailable</>
+      <>Vote count unavailable (Post has below 0 Karma)</>
     ) : (
       <>
         ⬆️ {postInfo.upvotes} | ⬇️ {postInfo.downvotes}
@@ -137,16 +138,19 @@ const RedditInfoBox: React.FC = () => {
   );
 };
 
+
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
 const boxStyle: React.CSSProperties = {
   width: "40%",
   padding: "10px",
-  background: "#fff8e1",
+  background: isDarkMode ? "#282828ff" : "#fff8e1",
   border: "1px solid #ccc",
   borderRadius: "8px",
-  color: "black",
+  color: isDarkMode ? "white" : "black",
   margin: "10px 0",
   fontSize: "14px",
-  fontFamily: "sans-serif",
+  fontFamily: "Verdana, Helvetica, sans-serif",
   fontWeight: "bold",
   position: "relative", 
   zIndex: 0
