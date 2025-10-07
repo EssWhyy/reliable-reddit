@@ -10,20 +10,62 @@ function getPostBaseUrl(url: string): string {
   return u.origin + u.pathname.split("?")[0].split("#")[0];
 }
 
+function isOldRedditInterface(url: string): boolean {
+  const urlObject = new URL(url);
+  const hostname = urlObject.hostname;
+
+  if (hostname.startsWith('old.reddit.com')) {
+    return true;
+  } 
+  return false; 
+}
+
+
 function waitForElement(selector: string): Promise<Element> {
   return new Promise((resolve) => {
-    const existing = document.querySelector(selector);
-    if (existing) return resolve(existing);
-
-    const observer = new MutationObserver(() => {
-      const el = document.querySelector(selector);
-      if (el) {
-        observer.disconnect();
-        resolve(el);
+    // Helper function to check for the element and resolve if found
+    const checkAndResolve = (observer?: MutationObserver) => {
+      const existing = document.querySelector(selector);
+      if (existing) {
+        if (observer) observer.disconnect();
+        resolve(existing);
+        return true;
       }
-    });
+      return false;
+    };
 
-    observer.observe(document, { childList: true, subtree: true });
+    // 1. Check if the element already exists (best-case scenario)
+    if (checkAndResolve()) return;
+
+    // Function to set up the MutationObserver fallback
+    const startObserver = () => {
+      const observer = new MutationObserver(() => {
+        // Pass the observer to disconnect it upon finding the element
+        checkAndResolve(observer);
+      });
+
+      // OBSERVE THE BODY for dynamic changes
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+      });
+    };
+
+    // 2. Prioritize DOMContentLoaded if the document is still loading
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        // 2a. Check one last time after the static DOM is complete
+        if (!checkAndResolve()) {
+          // 2b. If the element is still not found, it must be loaded dynamically, 
+          // so start the MutationObserver
+          startObserver();
+        }
+      }, { once: true });
+    } else {
+      // 3. If the DOM is already ready, and it wasn't found in step 1, 
+      // the element is definitely dynamic, so start the observer immediately.
+      startObserver();
+    }
   });
 }
 
@@ -61,7 +103,13 @@ let root: Root | null = null;
 async function inject() {
   if (!POST_URL_RE.test(location.href)) return;
 
-  const titleEl = (await waitForElement("h1")) as HTMLElement;
+  let titleEl: HTMLElement;
+  if (isOldRedditInterface(location.href)) {
+    titleEl = (await waitForElement(".linkinfo")) as HTMLElement;
+  } else {
+    titleEl = (await waitForElement("h1")) as HTMLElement;
+  }
+
   const baseUrl = getPostBaseUrl(location.href);
 
 

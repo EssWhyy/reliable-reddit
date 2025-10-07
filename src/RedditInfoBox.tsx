@@ -15,10 +15,13 @@ interface OpData {
   cakeDay: string;
 }
 
+let isOldReddit: boolean = false;
+
 const RedditInfoBox: React.FC = () => {
   const [opData, setOpData] = useState<OpData | null>(null);
   const [postInfo, setPostInfo] = useState<PostInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
@@ -26,12 +29,17 @@ const RedditInfoBox: React.FC = () => {
     const fetchVoteData = async () => {
       // upvote/downvote info
       const u = new URL(window.location.href.replace(/\/$/, ""));
-      const jsonUrl = u.origin + u.pathname + ".json";
+      let jsonUrl = u.origin + u.pathname + ".json";
+
+      if (jsonUrl.includes("old.")) {
+        jsonUrl = jsonUrl.replace("old.", "www.");
+        isOldReddit = true;
+      }
 
       try {
         const response = await fetch(jsonUrl);
         const data: [any, unknown] = await response.json();
-        
+
         const postData = data[0].data.children[0].data;
         const ratio: number = postData.upvote_ratio;
         const ups: number = postData.ups;
@@ -52,13 +60,21 @@ const RedditInfoBox: React.FC = () => {
 
     const fetchOPData = async () => {
       // Information on Poster
-      const tracker = document.querySelector('faceplate-tracker[noun="user_profile"]');
-      if (!tracker) return;
+      let tracker;
+      let username;
+      if (isOldReddit) {
+        tracker = document.querySelector('p.tagline a.author');
+        if (!tracker) return;
+        username = tracker.textContent;
+      } else {
+        tracker = document.querySelector('faceplate-tracker[noun="user_profile"]');
+        if (!tracker) return;
 
-      const usernameEl = tracker.querySelector("a.author-name");
-      if (!usernameEl) return;
+        let usernameEl = tracker.querySelector("a.author-name");
+        if (!usernameEl) return;
 
-      const username = usernameEl.textContent.trim();
+        username = usernameEl.textContent.trim();
+      }
 
       try {
         const resp = await fetch(`https://www.reddit.com/user/${username}/about.json`);
@@ -96,16 +112,38 @@ const RedditInfoBox: React.FC = () => {
     fetchOPData();
   }, []);
 
-  if (error) return <div style={boxStyle}>❌ {error}</div>;
-  if (!postInfo || !opData) return null;
 
+  const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  const boxStyle: React.CSSProperties = {
+    width: isOldReddit ? "90%" : "50%",
+    padding: "10px",
+    background: isDarkMode ? "#282828ff" : "#fff8e1",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    color: isDarkMode ? "white" : "black",
+    margin: "10px 0",
+    fontSize: "14px",
+    fontFamily: "Verdana, Helvetica, sans-serif",
+    fontWeight: "bold",
+    position: "relative", 
+    zIndex: 0
+  };
+
+  if (error) return <div style={boxStyle}>❌ {error}</div>;
+
+  if (!postInfo || !opData) return null;
 
   const isPossibleBotAccount: boolean = opData.postKarma >= 1000 && (opData.commentKarma / opData.postKarma) < 0.01; // Comment karma <1% of Post Karma
   const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= 2678400; // Less than 1 month old
 
   return (
     <div style={boxStyle}>
-    {Number((postInfo.ratio * 100).toFixed(0)) + "% upvoted"} |{" "}
+        {!isOldReddit && (
+      <>
+        {Number((postInfo.ratio * 100).toFixed(0)) + "% upvoted"} |{" "}
+      </>
+    )}
     {postInfo.ratio <= 0.5 ? (
       <>Vote count unavailable (Post has below 0 Karma)</>
     ) : (
@@ -136,24 +174,6 @@ const RedditInfoBox: React.FC = () => {
     {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma </p>}
     </div>
   );
-};
-
-
-const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-const boxStyle: React.CSSProperties = {
-  width: "40%",
-  padding: "10px",
-  background: isDarkMode ? "#282828ff" : "#fff8e1",
-  border: "1px solid #ccc",
-  borderRadius: "8px",
-  color: isDarkMode ? "white" : "black",
-  margin: "10px 0",
-  fontSize: "14px",
-  fontFamily: "Verdana, Helvetica, sans-serif",
-  fontWeight: "bold",
-  position: "relative", 
-  zIndex: 0
 };
 
 export default RedditInfoBox;
