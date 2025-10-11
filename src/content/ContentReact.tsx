@@ -2,7 +2,7 @@
 import { createRoot, Root } from "react-dom/client";
 import RedditInfoBox from "./RedditInfoBox";
 
-const POST_URL_RE = /reddit\.com\/r\/.+\/comments\//;
+const POST_URL_RE = /reddit\.com\/r\/.+\/comments\/(?!.*\?entry_point=)/;
 
 function getPostBaseUrl(url: string): string {
   // Strip off query string and hash
