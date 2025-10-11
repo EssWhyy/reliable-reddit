@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   define: {
-    // 👇 define process.env as an empty object to prevent ReferenceError
+    // prevent ReferenceError
     'process.env': {},
   },
   build: {
@@ -14,7 +14,7 @@ export default defineConfig({
     emptyOutDir: false,
     target: 'es2017',
     lib: {
-      entry: path.resolve(__dirname, 'src/contentReact.tsx'),
+      entry: path.resolve(__dirname, 'src/content/contentReact.tsx'),
       name: 'content', 
       formats: ['iife'],     
       fileName: () => 'content.js', 

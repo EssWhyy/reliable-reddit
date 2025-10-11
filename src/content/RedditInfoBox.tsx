@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MultiProgress from "react-multi-progress";
 import "./redditInfoBox.css"
+import { getAIMentions } from "./commentCheck";
 
 interface PostInfo {
   ratio: number;
@@ -21,7 +22,7 @@ const RedditInfoBox: React.FC = () => {
   const [opData, setOpData] = useState<OpData | null>(null);
   const [postInfo, setPostInfo] = useState<PostInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const [isAiMentioned, setAiMentioned] = useState(false);
 
   useEffect(() => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
@@ -107,9 +108,17 @@ const RedditInfoBox: React.FC = () => {
         console.error("Failed to fetch user info", e);
       }
     }
+
+    const checkAI = getAIMentions(() => {
+      setAiMentioned(true);
+    });
+
+
     
     fetchVoteData();
     fetchOPData();
+    checkAI();
+
   }, []);
 
 
@@ -171,7 +180,8 @@ const RedditInfoBox: React.FC = () => {
 
 
     {isNewAccount && <p>🍼 OP is a new account, under 1 month old</p>}
-    {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma </p>}
+    {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma</p>}
+    {isAiMentioned && <p>🤖 AI mentioned in the comments</p> }
     </div>
   );
 };

@@ -5,7 +5,8 @@ Also includes other stats to determine a post's reliability
 
 How to build:
 npm install
-npx vite build
+npx vite build (Popup Script)
+npx vite build --config vite.content.config.ts (Content Script)
 
 How to run:
 Firefox about extensions debug

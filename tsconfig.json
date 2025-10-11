@@ -9,8 +9,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["chrome", "firefox-webext-browser"]
+    "types": ["node", "chrome", "firefox-webext-browser"]
   },
-  "include": ["src/*.tsx"],
+  "include": ["src/content/*.tsx", "src/content/ContentReact.tsx", "src/content/RedditInfoBox.tsx"],
   "exclude": ["node_modules", "dist"]
 }
