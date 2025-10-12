@@ -133,14 +133,22 @@ async function inject() {
 }
 
 function boot() {
+  // Initial inject if already on a post
   inject();
 
-  // Keep an observer running so late-arriving DOM still triggers injection
+  // Observe DOM changes (optional, can help if Reddit re-renders dynamically)
   const mo = new MutationObserver(() => inject());
-  mo.observe(document, { childList: true, subtree: true });
+  mo.observe(document.body, { childList: true, subtree: true });
 
-  // Re-run on SPA navigations
-  onUrlChange(() => setTimeout(inject, 0));
+  // Handle SPA navigations properly
+  onUrlChange(() => {
+    let attempts = 0;
+    const tryInject = () => {
+      inject();
+      if (++attempts < 10) setTimeout(tryInject, 300);
+    };
+    tryInject();
+  });
 }
 
 boot();
