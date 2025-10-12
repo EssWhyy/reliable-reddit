@@ -144,7 +144,7 @@ const RedditInfoBox: React.FC = () => {
   if (!postInfo || !opData) return null;
 
   const isPossibleBotAccount: boolean = opData.postKarma >= 1000 && (opData.commentKarma / opData.postKarma) < 0.01; // Comment karma <1% of Post Karma
-  const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= 2678400; // Less than 1 month old
+  const isNewAccount: boolean = new Date().getTime() - new Date(opData.cakeDay).getTime() <= (3 * 2678400); // Less than 3 months old
 
   return (
     <div style={boxStyle}>
@@ -179,9 +179,9 @@ const RedditInfoBox: React.FC = () => {
 		/>
 
 
-    {isNewAccount && <p>🍼 OP is a new account, under 1 month old</p>}
+    {isNewAccount && <p>🍼 OP is a new account, less than 3 months old</p>}
     {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma</p>}
-    {isAiMentioned && <p>🤖 AI mentioned in the comments</p> }
+    {isAiMentioned && <p>🤖 'AI' mentioned in post's comments</p> }
     </div>
   );
 };

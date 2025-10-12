@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(),     
+    viteStaticCopy({
+      targets: [
+        { src: 'manifest.json', dest: '.' }, // copy manifest into dist/
+        { src: './images', dest: '.' },         // optional: copy icons folder
+      ],
+    }),],
   base: './',
   build: {
     outDir: 'dist',
@@ -14,7 +21,7 @@ export default defineConfig({
         popup: path.resolve(__dirname, 'src/popup/index.html'),
       },
       output: {
-        entryFileNames: '[name].js',
+        entryFileNames: 'src/popup/[name].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
       },

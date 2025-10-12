@@ -10,7 +10,7 @@ export const getAIMentions = (onFound?: (text: string) => void) => {
 
     const text = el.textContent || '';
     if (regex.test(text)) {
-      console.log("Found standalone 'ai' in comment:", text);
+      console.log("Found standalone 'AI' mentioned in comment:", text);
       onFound?.(text); // Notify parent when "ai" is found
     }
   }

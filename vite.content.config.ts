@@ -17,7 +17,14 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/content/contentReact.tsx'),
       name: 'content', 
       formats: ['iife'],     
-      fileName: () => 'content.js', 
+      fileName: () => 'src/content.js', 
+    },
+    rollupOptions: {
+      output: {
+        // 👇 This ensures all assets (CSS, etc.) go into dist/src/
+        assetFileNames: 'src/[name][extname]',
+      },
     },
   },
+  
 })
