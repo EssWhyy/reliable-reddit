@@ -13,7 +13,7 @@
       "*://*.reddit.com/r/*",
       "*://old.reddit.com/r/*"
     ],
-      "js": ["dist/content.js"]
+      "js": ["dist/src/content.js"]
     }
   ],
   "icons": 

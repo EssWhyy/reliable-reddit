@@ -109,9 +109,11 @@ const RedditInfoBox: React.FC = () => {
       }
     }
 
-    const checkAI = getAIMentions(() => {
-      setAiMentioned(true);
-    });
+    const checkAI = async () => {
+      await getAIMentions(() => {
+        setAiMentioned(true);
+      });
+    };
 
 
     
