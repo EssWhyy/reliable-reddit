@@ -22,8 +22,12 @@ const RedditInfoBox: React.FC = () => {
   const [opData, setOpData] = useState<OpData | null>(null);
   const [postInfo, setPostInfo] = useState<PostInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isAiMentioned, setAiMentioned] = useState(false);
-
+  //const [isAiMentioned, setAiMentioned] = useState(false);
+  const [aiComment, setAiComment] = useState<{
+    body: string;
+    permalink: string;
+  } | null>(null);
+  
   useEffect(() => {
     if (!window.location.href.match(/reddit\.com\/r\/.+\/comments\//)) return;
 
@@ -110,9 +114,10 @@ const RedditInfoBox: React.FC = () => {
     }
 
     const checkAI = async () => {
-      await getAIMentions(() => {
-        setAiMentioned(true);
-      });
+      const result = await getAIMentions();
+      if (result) {
+        setAiComment(result);
+      }
     };
 
 
@@ -183,7 +188,19 @@ const RedditInfoBox: React.FC = () => {
 
     {isNewAccount && <p>🍼 OP is a new account, less than 3 months old</p>}
     {isPossibleBotAccount && <p>🤖 OP is possibly a bot: High post karma but Low comment karma</p>}
-    {isAiMentioned && <p>🤖 'AI' mentioned in post's comments</p> }
+    {aiComment && (
+      <p>
+        🤖 'AI' mentioned in{" "}
+        <a
+          href={aiComment.permalink}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#FF4500" }}
+        >
+          this comment
+        </a>
+      </p>
+    )}
     </div>
   );
 };
