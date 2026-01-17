@@ -1,4 +1,4 @@
-// contentReact.tsx
+// Logic to display Reddit Info Box on DOM
 import { createRoot, Root } from "react-dom/client";
 import RedditInfoBox from "./RedditInfoBox";
 
