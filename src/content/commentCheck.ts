@@ -18,6 +18,7 @@ interface RedditComment {
   };
 }
 
+//This simply checks if there are any AI/Bot Mentions
 export async function getAIMentions(): Promise<AiComment | null> {
   try {
     const url = window.location.href.replace(/\/$/, "") + ".json";
@@ -28,7 +29,7 @@ export async function getAIMentions(): Promise<AiComment | null> {
     const data = await res.json();
 
     const comments: RedditComment[] = data[1]?.data?.children ?? [];
-    const regex = /\bai\b/i;
+    const regex = /\b(ai|bot)\b/i;
 
     const traverse = (list: RedditComment[]): AiComment | null => {
       for (const item of list) {
@@ -56,5 +57,79 @@ export async function getAIMentions(): Promise<AiComment | null> {
   } catch (err) {
     console.error("AI comment check failed", err);
     return null;
+  }
+}
+
+// This highlights the actual comment boxes on Reddit Post Page
+export async function highlightAiBotComments(): Promise<void> {
+  const isOldReddit = location.hostname.startsWith("old.");
+
+  const selectors = isOldReddit
+    ? {
+        commentBox: ".comment",
+        commentText: ".comment .md",
+      }
+    : {
+        commentBox: "shreddit-comment[depth]",
+        commentText: "shreddit-comment[depth] p",
+      };
+
+  const keywordRegex = /\b(ai|bot)\b/i;
+
+  const waitForElement = <T extends Element>(
+    selector: string,
+    timeout = 10000
+  ): Promise<T> =>
+    new Promise((resolve, reject) => {
+      const existing = document.querySelector<T>(selector);
+      if (existing) return resolve(existing);
+
+      const observer = new MutationObserver(() => {
+        const el = document.querySelector<T>(selector);
+        if (el) {
+          observer.disconnect();
+          resolve(el);
+        }
+      });
+
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`Timeout waiting for ${selector}`));
+      }, timeout);
+    });
+
+  try {
+    // Wait for at least one real comment
+    await waitForElement(selectors.commentBox);
+
+    const commentBoxes = document.querySelectorAll<HTMLElement>(
+      selectors.commentBox
+    );
+
+    commentBoxes.forEach(commentBox => {
+      if (commentBox.dataset.aiHighlighted) return;
+
+      // Collect all visible text within the comment
+      const text = Array.from(
+        commentBox.querySelectorAll<HTMLElement>(selectors.commentText)
+      )
+        .map(el => el.innerText)
+        .join(" ");
+
+      if (!keywordRegex.test(text)) return;
+
+      // Mark + highlight
+      commentBox.dataset.aiHighlighted = "true";
+      commentBox.style.outline = "2px solid #f05816";
+      commentBox.style.background = "rgba(255, 152, 0, 0.15)";
+      commentBox.style.borderRadius = "8px";
+    });
+  } catch (err) {
+    console.warn("Failed to highlight AI/Bot comments:", err);
   }
 }

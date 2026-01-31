@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAIMentions } from "../commentCheck";
+import { getAIMentions, highlightAiBotComments } from "../commentCheck";
 
 export function useAICheck() {
   const [aiComment, setAiComment] = useState<{
@@ -13,7 +13,12 @@ export function useAICheck() {
       if (result) setAiComment(result);
     };
 
+    const highlightAI = async () => {
+      await highlightAiBotComments()
+    }
+
     checkAI();
+    highlightAI();
   }, []);
 
   return aiComment;

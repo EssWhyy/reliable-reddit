@@ -1,9 +1,48 @@
-import React from "react";
-import { Button, Typography, Box, Paper } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Button, Typography, Box, Paper, FormControlLabel, Checkbox } from "@mui/material";
 import { FaReddit, FaGithub } from "react-icons/fa";
 import { SiBuymeacoffee } from "react-icons/si";
 
 const Popup: React.FC = () => {
+  const [showRedditInfo, setShowRedditInfo] = useState(true);
+
+  // Load saved setting from chrome.storage when popup opens
+  // Utility to get storage API in a cross-browser way
+  const storage = (window as any).browser?.storage || (window as any).chrome?.storage;
+
+  useEffect(() => {
+    if (!storage) return;
+
+    // Chrome-style callback
+    if (storage.sync.get.length === 2) {
+      storage.sync.get(["showRedditInfo"], (result: any) => {
+        if (result.showRedditInfo !== undefined) {
+          setShowRedditInfo(result.showRedditInfo);
+        }
+      });
+    } else {
+      // Firefox-style promise
+      storage.sync.get(["showRedditInfo"]).then((result: any) => {
+        if (result.showRedditInfo !== undefined) {
+          setShowRedditInfo(result.showRedditInfo);
+        }
+      });
+    }
+  }, []);
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.checked;
+    setShowRedditInfo(value);
+
+    if (storage.sync.set.length === 1) {
+      // Firefox Promise-style
+      storage.sync.set({ showRedditInfo: value });
+    } else {
+      // Chrome callback-style
+      storage.sync.set({ showRedditInfo: value });
+    }
+  };
+
   const handleRedirect = () => {
     window.open("https://github.com/your-repo", "_blank");
   };
@@ -26,6 +65,38 @@ const Popup: React.FC = () => {
       <Typography variant="body2" color="text.secondary" gutterBottom>
         Made by EssWhyy, 2025
       </Typography>
+
+      <Box mt={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={showRedditInfo}
+              onChange={handleCheckboxChange}
+            />
+          }
+          label="Show upvote bar box"
+        />
+      </Box>
+
+            <Box mt={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+            />
+          }
+          label="Show info on post author"
+        />
+      </Box>
+
+            <Box mt={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+            />
+          }
+          label="Highlight AI/Bot mentions in comments"
+        />
+      </Box>
 
       <Box mt={2}>
         <Button

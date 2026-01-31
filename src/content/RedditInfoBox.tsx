@@ -90,7 +90,7 @@ const RedditInfoBox: React.FC = () => {
 
       {aiComment && (
         <p>
-          🤖 &apos;AI&apos; mentioned in{" "}
+          🤖 &apos;AI/Bot&apos; mentioned in{" "}
           <a
             href={aiComment.permalink}
             target="_blank"
