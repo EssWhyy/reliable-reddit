@@ -28,7 +28,6 @@ export async function getAIMentions(): Promise<AiComment | null> {
 
     const data = await res.json();
 
-    console.log('Data fetched: ', data)
     const comments: RedditComment[] = data[1]?.data?.children ?? [];
     const regex = /\b(ai|bot)\b/i;
 

@@ -21,7 +21,7 @@ function isOldRedditInterface(url: string): boolean {
 }
 
 
-function waitForElement(selector: string): Promise<Element> {
+function waitForElement(selector: string, timeout = 5000): Promise<Element> {
   return new Promise((resolve) => {
     // Helper function to check for the element and resolve if found
     const checkAndResolve = (observer?: MutationObserver) => {
@@ -69,39 +69,16 @@ function waitForElement(selector: string): Promise<Element> {
   });
 }
 
-function onUrlChange(callback: () => void) {
-  let last = location.href;
-  const fire = () => {
-    const now = location.href;
-    if (now !== last) {
-      last = now;
-      callback();
-    }
-  };
-
-  // History API hooks
-  const _push = history.pushState;
-  history.pushState = function (this: History, ...args: Parameters<History['pushState']>) {
-    const r = _push.apply(this, args);
-    fire();
-    return r;
-  } as typeof history.pushState;
-
-  const _replace = history.replaceState;
-  history.replaceState = function (this: History, ...args: Parameters<History['replaceState']>) {
-    const r = _replace.apply(this, args);
-    fire();
-    return r;
-  } as typeof history.replaceState;
-
-    window.addEventListener("popstate", fire);
-  }
-
 let root: Root | null = null;
 
-// Logic to inject Reddit Upvote Bar into DOM
+// Track which posts have been injected to avoid repeated injection
+const injectedPosts = new Set<string>();
+
 async function inject() {
   if (!POST_URL_RE.test(location.href)) return;
+
+  const baseUrl = getPostBaseUrl(location.href);
+  if (injectedPosts.has(baseUrl)) return; // already injected
 
   let titleEl: HTMLElement;
   if (isOldRedditInterface(location.href)) {
@@ -110,19 +87,12 @@ async function inject() {
     titleEl = (await waitForElement("h1")) as HTMLElement;
   }
 
-  const baseUrl = getPostBaseUrl(location.href);
-
-
   const existing = document.getElementById("reddit-info-box-container");
-  if (existing && existing.dataset.url === baseUrl) return;
-
-  // Clean up any old instance (from previous post)
   if (existing) {
     try { root?.unmount(); } catch {}
     existing.remove();
   }
 
-  // Inject fresh container
   const container = document.createElement("div");
   container.id = "reddit-info-box-container";
   container.dataset.url = location.href;
@@ -130,24 +100,57 @@ async function inject() {
 
   root = createRoot(container);
   root.render(<RedditInfoBox key={location.href} />);
+
+  injectedPosts.add(baseUrl);
+}
+
+// Handles SPA navigation and ensures safe injection
+function onUrlChange(callback: () => void) {
+  let last = location.href;
+
+  const fire = () => {
+    const now = location.href;
+    if (now !== last) {
+      last = now;
+      callback();
+    }
+  };
+
+  // Wrap history API
+  const wrapHistoryFn = (fn: typeof history.pushState | typeof history.replaceState) =>
+    function (this: History, ...args: Parameters<typeof fn>) {
+      const result = fn.apply(this, args);
+      fire();
+      return result;
+    };
+
+  history.pushState = wrapHistoryFn(history.pushState) as typeof history.pushState;
+  history.replaceState = wrapHistoryFn(history.replaceState) as typeof history.replaceState;
+
+  window.addEventListener("popstate", fire);
 }
 
 function boot() {
   // Initial inject if already on a post
   inject();
 
-  // Observe DOM changes (optional, can help if Reddit re-renders dynamically)
-  const mo = new MutationObserver(() => inject());
+  // Observe DOM for dynamic re-renders
+  let mutationDebounce = false;
+  const mo = new MutationObserver(() => {
+    if (mutationDebounce) return;
+    mutationDebounce = true;
+    setTimeout(async () => {
+      await inject();
+      mutationDebounce = false;
+    }, 50); // small debounce to avoid rapid re-injection
+  });
   mo.observe(document.body, { childList: true, subtree: true });
 
-  // Handle SPA navigations properly
+  // Handle SPA navigation
   onUrlChange(() => {
-    let attempts = 0;
-    const tryInject = () => {
-      inject();
-      if (++attempts < 10) setTimeout(tryInject, 300);
-    };
-    tryInject();
+    // Clear old injections for safety
+    injectedPosts.clear();
+    setTimeout(() => inject(), 50); // slight delay for Reddit DOM to settle
   });
 }
 
