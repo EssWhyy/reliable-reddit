@@ -28,6 +28,7 @@ export async function getAIMentions(): Promise<AiComment | null> {
 
     const data = await res.json();
 
+    console.log('Data fetched: ', data)
     const comments: RedditComment[] = data[1]?.data?.children ?? [];
     const regex = /\b(ai|bot)\b/i;
 
@@ -114,12 +115,11 @@ export async function highlightAiBotComments(): Promise<void> {
     commentBoxes.forEach(commentBox => {
       if (commentBox.dataset.aiHighlighted) return;
 
-      // Collect all visible text within the comment
-      const text = Array.from(
-        commentBox.querySelectorAll<HTMLElement>(selectors.commentText)
-      )
-        .map(el => el.innerText)
-        .join(" ");
+      // Get only the top level comment text element
+      const firstCommentEl = commentBox.querySelector<HTMLElement>(selectors.commentText);
+      if (!firstCommentEl) return;
+
+      const text = firstCommentEl.innerText;
 
       if (!keywordRegex.test(text)) return;
 
