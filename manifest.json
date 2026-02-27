@@ -3,7 +3,7 @@
   "name": "Reddit Upvote Bar",
   "version": "1.0",
   "description": "Displays useful info on Reddit posts on New Desktop Reddit UI.",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "dist/src/popup/index.html"
   },
