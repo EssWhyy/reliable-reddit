@@ -19,7 +19,7 @@ export function usePostVotes() {
       let jsonUrl = u.origin + u.pathname + ".json";
 
       if (jsonUrl.includes("old.")) {
-        jsonUrl = jsonUrl.replace("old.", "www.");
+        jsonUrl = jsonUrl.replace("www.", "old.");
         setIsOldReddit(true);
       }
 

@@ -28,8 +28,13 @@ export function useOpData(isOldReddit: boolean) {
       if (!tracker || !username) return;
 
       try {
+        const u = new URL(window.location.href.replace(/\/$/, ""));
+        let requestUrl = u.hostname.includes("old.reddit.com") 
+          ? `https://old.reddit.com/user/${username}/about.json`
+          : `https://www.reddit.com/user/${username}/about.json`;
+
         const resp = await fetch(
-          `https://www.reddit.com/user/${username}/about.json`
+          requestUrl
         );
         if (!resp.ok) return;
 
