@@ -1,157 +1,125 @@
-// Logic to display Reddit Info Box on DOM
 import { createRoot, Root } from "react-dom/client";
 import RedditInfoBox from "./RedditInfoBox";
 
 const POST_URL_RE = /reddit\.com\/r\/.+\/comments\/(?!.*\?entry_point=)/;
-
-function getPostBaseUrl(url: string): string {
-  // Strip off query string and hash
-  const u = new URL(url);
-  return u.origin + u.pathname.split("?")[0].split("#")[0];
-}
-
-function isOldRedditInterface(url: string): boolean {
-  const urlObject = new URL(url);
-  const hostname = urlObject.hostname;
-
-  if (hostname.startsWith('old.reddit.com')) {
-    return true;
-  } 
-  return false; 
-}
-
-
-function waitForElement(selector: string, timeout = 5000): Promise<Element> {
-  return new Promise((resolve) => {
-    // Helper function to check for the element and resolve if found
-    const checkAndResolve = (observer?: MutationObserver) => {
-      const existing = document.querySelector(selector);
-      if (existing) {
-        if (observer) observer.disconnect();
-        resolve(existing);
-        return true;
-      }
-      return false;
-    };
-
-    // 1. Check if the element already exists (best-case scenario)
-    if (checkAndResolve()) return;
-
-    // Function to set up the MutationObserver fallback
-    const startObserver = () => {
-      const observer = new MutationObserver(() => {
-        // Pass the observer to disconnect it upon finding the element
-        checkAndResolve(observer);
-      });
-
-      // OBSERVE THE BODY for dynamic changes
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
-      });
-    };
-
-    // 2. Prioritize DOMContentLoaded if the document is still loading
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        // 2a. Check one last time after the static DOM is complete
-        if (!checkAndResolve()) {
-          // 2b. If the element is still not found, it must be loaded dynamically, 
-          // so start the MutationObserver
-          startObserver();
-        }
-      }, { once: true });
-    } else {
-      // 3. If the DOM is already ready, and it wasn't found in step 1, 
-      // the element is definitely dynamic, so start the observer immediately.
-      startObserver();
-    }
-  });
-}
-
 let root: Root | null = null;
+let lastInjectedUrl: string | null = null;
 
-// Track which posts have been injected to avoid repeated injection
-const injectedPosts = new Set<string>();
+/**
+ * Normalizes the URL to prevent double-injection on hash changes 
+ * or query parameter updates.
+ */
+function getPostBaseUrl(url: string): string {
+  const u = new URL(url);
+  return u.origin + u.pathname;
+}
 
+/**
+ * Finds the best anchor point for injection. 
+ * Supports Old Reddit, New Reddit, and the latest "Shreddit" interface.
+ */
+function findAnchorElement(): HTMLElement | Element | null {
+  // 1. Shreddit (Modern Reddit) - look for the main post component
+  const shredditPost = document.querySelector('shreddit-post');
+  if (shredditPost) {
+    // We try to find the title inside the shadow DOM or the light DOM H1
+    return shredditPost.querySelector('h1') || shredditPost;
+  }
+
+  // 2. Old Reddit
+  const linkInfo = document.querySelector(".linkinfo");
+  if (linkInfo) return linkInfo as HTMLElement;
+
+  // 3. New Reddit (2018-2023 version)
+  const h1 = document.querySelector("h1");
+  if (h1) return h1;
+
+  return null;
+}
+
+/**
+ * Core injection logic. Safely mounts or updates the React root.
+ */
 async function inject() {
-  if (!POST_URL_RE.test(location.href)) return;
-
-  const baseUrl = getPostBaseUrl(location.href);
-  if (injectedPosts.has(baseUrl)) return; // already injected
-
-  let titleEl: HTMLElement;
-  if (isOldRedditInterface(location.href)) {
-    titleEl = (await waitForElement(".linkinfo")) as HTMLElement;
-  } else {
-    titleEl = (await waitForElement("h1")) as HTMLElement;
+  const currentUrl = location.href;
+  if (!POST_URL_RE.test(currentUrl)) {
+    cleanup();
+    return;
   }
 
+  const baseUrl = getPostBaseUrl(currentUrl);
+  const anchor = findAnchorElement();
+
+  // If we can't find where to put it yet, or it's already there for this URL, bail.
   const existing = document.getElementById("reddit-info-box-container");
-  if (existing) {
-    try { root?.unmount(); } catch {}
-    existing.remove();
+  if (!anchor || (existing && existing.dataset.url === baseUrl)) {
+    return;
   }
+
+  // Clean up previous instance if the URL changed but the element persisted
+  if (existing) cleanup();
 
   const container = document.createElement("div");
   container.id = "reddit-info-box-container";
-  container.dataset.url = location.href;
-  titleEl.insertAdjacentElement("afterend", container);
+  container.dataset.url = baseUrl;
+  
+  // Apply a small margin for spacing depending on the UI
+  container.style.marginTop = "15px";
+  container.style.marginBottom = "15px";
+
+  anchor.insertAdjacentElement("afterend", container);
 
   root = createRoot(container);
-  root.render(<RedditInfoBox key={location.href} />);
-
-  injectedPosts.add(baseUrl);
+  root.render(<RedditInfoBox key={baseUrl} />);
+  lastInjectedUrl = baseUrl;
 }
 
-// Handles SPA navigation and ensures safe injection
-function onUrlChange(callback: () => void) {
-  let last = location.href;
-
-  const fire = () => {
-    const now = location.href;
-    if (now !== last) {
-      last = now;
-      callback();
-    }
-  };
-
-  // Wrap history API
-  const wrapHistoryFn = (fn: typeof history.pushState | typeof history.replaceState) =>
-    function (this: History, ...args: Parameters<typeof fn>) {
-      const result = fn.apply(this, args);
-      fire();
-      return result;
-    };
-
-  history.pushState = wrapHistoryFn(history.pushState) as typeof history.pushState;
-  history.replaceState = wrapHistoryFn(history.replaceState) as typeof history.replaceState;
-
-  window.addEventListener("popstate", fire);
+function cleanup() {
+  const existing = document.getElementById("reddit-info-box-container");
+  if (existing) {
+    try { root?.unmount(); } catch (e) { /* ignore unmount errors */ }
+    existing.remove();
+  }
+  root = null;
+  lastInjectedUrl = null;
 }
 
+/**
+ * The "Observer Loop" approach:
+ * Instead of hooking into tricky History APIs, we watch the DOM for changes.
+ * Reddit's SPA navigation always triggers DOM mutations.
+ */
 function boot() {
-  // Initial inject if already on a post
+  // Run immediately
   inject();
 
-  // Observe DOM for dynamic re-renders
-  let mutationDebounce = false;
-  const mo = new MutationObserver(() => {
-    if (mutationDebounce) return;
-    mutationDebounce = true;
-    setTimeout(async () => {
-      await inject();
-      mutationDebounce = false;
-    }, 50); // small debounce to avoid rapid re-injection
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
+  let debounceTimer: ReturnType<typeof setTimeout>;
+  
+  const observer = new MutationObserver(() => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      // Check if we need to inject (either URL changed or DOM was wiped)
+      const currentBase = getPostBaseUrl(location.href);
+      const isPost = POST_URL_RE.test(location.href);
+      const missing = !document.getElementById("reddit-info-box-container");
 
-  // Handle SPA navigation
-  onUrlChange(() => {
-    // Clear old injections for safety
-    injectedPosts.clear();
-    setTimeout(() => inject(), 50); // slight delay for Reddit DOM to settle
+      if (isPost && (currentBase !== lastInjectedUrl || missing)) {
+        inject();
+      } else if (!isPost && lastInjectedUrl) {
+        cleanup();
+      }
+    }, 100); // 100ms debounce to stay performant
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
   });
 }
 
-boot();
+// Start the engine
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
