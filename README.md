@@ -24,15 +24,15 @@ ________________________________________
 
 ### For Developers (Manual Install)
 If you want to run this locally or contribute, clone the repo then:
+0.  Follow instructions in the To Build section below
 1.	Open your browser's extension management page (chrome://extensions or about:debugging).
 2.	Enable Developer Mode.
-3.	Click Load unpacked and select the dist or root folder of the cloned project.
+3.	Click Load unpacked and select the dist or root folder of the cloned project, if on Firefox/Chrome respectively.
 
 ### To Build (VSCode)
 1.	npm install
 2.	npx vite build (For Popup Script)
 3.	npx vite build --config vite.content.config.ts (For Content Script)
-4.	Follow steps in manual install section
 
 ________________________________________
 ## 🛠️ Tech Stack
