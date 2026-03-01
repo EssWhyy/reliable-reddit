@@ -6,12 +6,11 @@ export function useAICheck() {
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Initial check of the setting
     chrome.storage.local.get(["aiHighlightEnabled"], (result) => {
       setIsEnabled(!!result.aiHighlightEnabled);
     });
 
-    // 2. Listen for changes (if user toggles popup while page is open)
+    // Check if user toggles popup while page is open
     const listener = (changes: any) => {
       if (changes.aiHighlightEnabled) {
         setIsEnabled(changes.aiHighlightEnabled.newValue);
@@ -23,7 +22,6 @@ export function useAICheck() {
   }, []);
 
   useEffect(() => {
-    // Only execute logic if the toggle is ON
     if (!isEnabled) {
       setAiComment(null); 
       return;

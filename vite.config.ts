@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(),     
     viteStaticCopy({
       targets: [
-        { src: 'manifest.json', dest: '.' }, // copy manifest into dist/
-        { src: './images', dest: '.' },         // optional: copy icons folder
+        { src: 'manifest.json', dest: '.' },
+        { src: './images', dest: '.' },
       ],
     }),],
   base: './',

@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   define: {
-    // prevent ReferenceError
     'process.env': {},
   },
   build: {
@@ -21,7 +20,6 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // 👇 This ensures all assets (CSS, etc.) go into dist/src/
         assetFileNames: 'src/[name][extname]',
       },
     },

@@ -22,7 +22,6 @@ function findAnchorElement(): HTMLElement | Element | null {
   // 1. Shreddit (Modern Reddit) - look for the main post component
   const shredditPost = document.querySelector('shreddit-post');
   if (shredditPost) {
-    // We try to find the title inside the shadow DOM or the light DOM H1
     return shredditPost.querySelector('h1') || shredditPost;
   }
 

@@ -29,7 +29,7 @@ export function useOpData(isOldReddit: boolean) {
 
       try {
         const u = new URL(window.location.href.replace(/\/$/, ""));
-        let requestUrl = u.hostname.includes("old.reddit.com") 
+        let requestUrl = u.hostname.includes("old.reddit.com")  // Prevent CORS issues
           ? `https://old.reddit.com/user/${username}/about.json`
           : `https://www.reddit.com/user/${username}/about.json`;
 
