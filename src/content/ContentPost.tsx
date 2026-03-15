@@ -1,6 +1,11 @@
 import { createRoot, Root } from "react-dom/client";
 import RedditInfoBox from "./RedditInfoBox";
 
+/**
+ * Main content script for Reddit Post page
+ */
+
+
 const POST_URL_RE = /reddit\.com\/r\/.+\/comments\/(?!.*\?entry_point=)/;
 let root: Root | null = null;
 let lastInjectedUrl: string | null = null;

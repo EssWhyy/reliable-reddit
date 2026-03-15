@@ -13,7 +13,7 @@ export default defineConfig({
     emptyOutDir: false,
     target: 'es2017',
     lib: {
-      entry: path.resolve(__dirname, 'src/content/contentReact.tsx'),
+      entry: path.resolve(__dirname, 'src/content/contentPost.tsx'),
       name: 'content', 
       formats: ['iife'],     
       fileName: () => 'src/content.js', 

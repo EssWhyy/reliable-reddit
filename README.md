@@ -32,7 +32,7 @@ If you want to run this locally or contribute, clone the repo then:
 ### To Build (VSCode)
 1.	npm install
 2.	npx vite build (For Popup Script)
-3.	npx vite build --config vite.content.config.ts (For Content Script)
+3.	npx vite build --config vite.profile.config.ts vite.post.config.ts (For Content Scripts)
 
 ________________________________________
 ## 🛠️ Tech Stack

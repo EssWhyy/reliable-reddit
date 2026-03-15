@@ -11,6 +11,6 @@
     "skipLibCheck": true,
     "types": ["node", "chrome", "firefox-webext-browser"]
   },
-  "include": ["src/content/*.tsx", "src/content/ContentReact.tsx", "src/content/RedditInfoBox.tsx"],
+  "include": ["src/content/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
