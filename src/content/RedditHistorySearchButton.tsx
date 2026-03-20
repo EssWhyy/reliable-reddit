@@ -24,7 +24,7 @@ const SearchButton: React.FC<SearchButtonProps> = ({ username }) => {
         fontWeight: 'bold'
       }}
     >
-      Search Post History on Arctic Shift
+      Search Archive on Arctic Shift
     </button>
   );
 };

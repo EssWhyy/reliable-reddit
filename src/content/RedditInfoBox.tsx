@@ -37,12 +37,13 @@ const RedditInfoBox: React.FC = () => {
     return null;
   }
 
-  const isPossibleBotAccount =
-    opData.postKarma >= 1000 &&
-    opData.commentKarma / opData.postKarma < 0.01;
+  const lowCommentKarma =
+    (opData.postKarma >= 1000 &&
+    opData.commentKarma / opData.postKarma < 0.01) || opData.commentKarma < 0; 
+    // high post + low comment karma = higher chance of bot
 
   const isNewAccount =
-    Date.now() - new Date(opData.cakeDay).getTime() <= 3 * 2678400 * 1000;
+    Date.now() - new Date(opData.cakeDay).getTime() <= 3 * 2678400 * 1000; // less than 3 months old
 
   return (
     <div style={boxStyle}>
@@ -53,7 +54,7 @@ const RedditInfoBox: React.FC = () => {
       )}
 
       {postInfo.ratio <= 0.5 ? (
-        <>Vote count unavailable (Post has below 0 Karma)</>
+        <>Vote count unavailable (Post has negative Karma)</>
       ) : (
         <>
           ⬆️ {postInfo.upvotes} | ⬇️ {postInfo.downvotes}
@@ -79,12 +80,12 @@ const RedditInfoBox: React.FC = () => {
       />
 
       {isNewAccount && (
-        <p>🍼 OP is a new account, less than 3 months old</p>
+        <p>🍼 User is a new account, less than 3 months old</p>
       )}
 
-      {isPossibleBotAccount && (
+      {lowCommentKarma && (
         <p>
-          🤖 OP is possibly a bot: High post karma but low comment karma
+          📉 User has low comment karma compared to post karma
         </p>
       )}
 

@@ -10,24 +10,31 @@ function injectSearchUI() {
   }
 
   const bodyText = document.body.innerText;
-  const hiddenRegex = /likes to keep their (posts|comments) hidden/i;
+  const username = window.location.pathname.split('/')[2];
 
-  if (hiddenRegex.test(bodyText)) {
-    const targetContainer = document.querySelector('shreddit-feed') || document.querySelector('main');
-    
-    if (targetContainer) {
-      const username = window.location.pathname.split('/')[2];
-      
-      const container = document.createElement('div');
-      container.id = INJECTION_ID;
-      container.style.display = 'flex';
-      container.style.justifyContent = 'center';
-      
-      targetContainer.append(container);
+  const isNewRedditHidden = /likes to keep their (posts|comments) hidden/i.test(bodyText);
+  const isOldRedditHidden = /there doesn't seem to be anything here/i.test(bodyText);
 
-      const root = createRoot(container);
-      root.render(<SearchButton username={username} />);
-    }
+  let targetContainer = null;
+
+  if (isNewRedditHidden) {
+    targetContainer = document.querySelector('shreddit-feed') || document.querySelector('main');
+  } else if (isOldRedditHidden) {
+    targetContainer = document.querySelector('#noresults') || document.querySelector('.content[role="main"]');
+  }
+
+
+  if (targetContainer) {
+    const container = document.createElement('div');
+    container.id = INJECTION_ID;
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.padding = '20px';
+
+    targetContainer.append(container);
+
+    const root = createRoot(container);
+    root.render(<SearchButton username={username} />);
   }
 }
 

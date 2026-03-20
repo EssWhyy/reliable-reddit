@@ -22,5 +22,11 @@
     "react-icons": "^5.5.0",
     "react-multi-progress": "^1.3.0",
     "vite-plugin-css-injected-by-js": "^4.0.1"
+  },
+  "scripts": {
+    "build:popup": "vite build --config vite.config.js",
+    "build:post": "vite build --config vite.post.config.js",
+    "build:profile": "vite build --config vite.profile.config.js",
+    "build:all": "npm run build:popup && npm run build:post && npm run build:profile"
   }
 }

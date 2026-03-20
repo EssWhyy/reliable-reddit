@@ -48,7 +48,7 @@ const Popup: React.FC = () => {
       </Typography>
 
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Made by EssWhyy, 2025
+        Made by EssWhyy, 2026
       </Typography>
 
       <Box mt={2} sx={{ textAlign: "left", pl: 2 }}>
