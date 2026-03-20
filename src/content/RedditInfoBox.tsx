@@ -1,5 +1,4 @@
 import React from "react";
-import MultiProgress from "react-multi-progress";
 import "./redditInfoBox.css";
 
 import { usePostVotes } from "./hooks/usePostVotes";
@@ -61,23 +60,31 @@ const RedditInfoBox: React.FC = () => {
         </>
       )}
 
-      <MultiProgress
-        elements={[
-          {
-            value: Number((postInfo.ratio * 100).toFixed(0)),
-            color: "#FF4500",
-            height: "16px",
-            isBold: true,
-          },
-          {
-            value: Number(((1 - postInfo.ratio) * 100).toFixed(0)),
-            color: "#6A5CFF",
-            height: "16px",
-            isBold: false,
-          },
-        ]}
-        className="sendToBack"
-      />
+<div
+  style={{
+    display: "flex",
+    width: "100%",
+    height: "16px",
+    borderRadius: "8px",
+    overflow: "hidden",
+    marginTop: "8px",
+    marginBottom: "8px",
+    border: "1px solid #ccc",
+  }}
+>
+  <div
+    style={{
+      width: `${Number((postInfo.ratio * 100).toFixed(0))}%`,
+      background: "#FF4500",
+    }}
+  />
+  <div
+    style={{
+      width: `${Number(((1 - postInfo.ratio) * 100).toFixed(0))}%`,
+      background: "#6A5CFF",
+    }}
+  />
+</div>
 
       {isNewAccount && (
         <p>🍼 User is a new account, less than 3 months old</p>
