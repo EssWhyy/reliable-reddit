@@ -1,5 +1,4 @@
 import React from "react";
-import "./redditInfoBox.css";
 
 import { usePostVotes } from "./hooks/usePostVotes";
 import { useOpData } from "./hooks/useOpData";

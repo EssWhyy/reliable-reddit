@@ -3,16 +3,13 @@
   "name": "Reddit Upvote Bar",
   "version": "1.0",
   "description": "Displays useful info on Reddit posts on New Desktop Reddit UI.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["storage"],
   "action": {
     "default_popup": "dist/src/popup/index.html"
   },
   "content_scripts": [
     {
-    "matches": [
-      "*://*.reddit.com/r/*",
-      "*://old.reddit.com/r/*"
-    ],
+    "matches": ["*://*.reddit.com/r/*"],
       "js": ["dist/src/content.js"]
     },
     {
