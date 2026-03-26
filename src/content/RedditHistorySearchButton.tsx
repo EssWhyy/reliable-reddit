@@ -2,12 +2,14 @@ import React from 'react';
 
 interface SearchButtonProps {
   username: string;
+  isCommentsSection: boolean;
 }
 
-const SearchButton: React.FC<SearchButtonProps> = ({ username }) => {
+const SearchButton: React.FC<SearchButtonProps> = ({ username, isCommentsSection }) => {
   const handleClick = () => {
     const searchUrl = `https://arctic-shift.photon-reddit.com/search?fun=posts_search&author=${username}&limit=10&sort=desc`;
-    window.location.href = searchUrl;
+    const searchCommentsUrl = `https://arctic-shift.photon-reddit.com/search?fun=comments_search&author=${username}&limit=10&sort=desc`;
+    window.location.href = isCommentsSection ? searchCommentsUrl : searchUrl;
   };
 
   return (

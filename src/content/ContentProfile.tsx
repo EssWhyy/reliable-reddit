@@ -11,6 +11,7 @@ function injectSearchUI() {
 
   const bodyText = document.body.innerText;
   const username = window.location.pathname.split('/')[2];
+  const isCommentsSection = window.location.pathname.includes('/comments/')
 
   const isNewRedditHidden = /likes to keep their (posts|comments) hidden/i.test(bodyText);
   const isOldRedditHidden = /there doesn't seem to be anything here/i.test(bodyText);
@@ -34,7 +35,7 @@ function injectSearchUI() {
     targetContainer.append(container);
 
     const root = createRoot(container);
-    root.render(<SearchButton username={username} />);
+    root.render(<SearchButton username={username} isCommentsSection={isCommentsSection}/>);
   }
 }
 

@@ -3,7 +3,7 @@ import { Button, Typography, Box, Paper, FormControlLabel, Checkbox } from "@mui
 import { FaReddit, FaGithub } from "react-icons/fa";
 
 const Popup: React.FC = () => {
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(true);
 
   // Cross-browser storage helper (works for both Chrome and Firefox)
   const storage = typeof chrome !== "undefined" ? chrome.storage.local : (window as any).browser?.storage.local;
@@ -60,7 +60,7 @@ const Popup: React.FC = () => {
               color="primary"
             />
           }
-          label="Highlight AI/Bot mentions"
+          label="Highlight AI/Bot mentions (may require page reload)"
         />
       </Box>
 
