@@ -1,19 +1,19 @@
-# reddit-upvote-bar
+# Reliable Reddit: Post & User Insights
 
-Reddit Upvote bar is a lightweight browser extension designed to pull back the curtain on Reddit content, enhancing transparency and context for the Reddit community.
-By surfacing hidden metrics and highlighting automated activity, it helps users distinguish between genuine community engagement and potential manipulation.
+Reliable Reddit is a lightweight browser extension designed to pull back the curtain on Reddit content, enhancing transparency and context for the Reddit community. By surfacing hidden metrics and highlighting automated activity, it helps users distinguish between genuine community engagement and potential manipulation.
 
-Install for Chrome | Install for Firefox
+Install for Chrome | Install for Firefox (to be updated)
 ________________________________________
 ## ✨ Key Features
--	📊 Visual Upvote Ratio: See the sentiment at a glance with a YouTube-style like/dislike bar on every post.
--	👤 Instant OP Insights: Hover or view account age (Cake Day) and total karma directly next to the username to identify burner accounts instantly.
--	🤖 Bot/AI Detection: Automatically highlights comments mentioning "bot," "AI," or "dead internet" to help you navigate suspicious discourse.
--	🎨 UI Versatility: Full support for both New Reddit and Old Reddit designs.
--	⚡ Lightweight & Modular: Built with performance in mind. Don't like a feature? Toggle it off in the settings menu with one click.
+-	📊 Visual Upvote Ratio: See post sentiment at a glance with a YouTube-style like/dislike bar on every post.
+-	👤 Instant OP Insights: Directly view user's account age and total karma on pages to identify burner accounts instantly. Offers redirect button to Arctic Shift Search for users who hide their profile to check for bad-faith actors.
+-	🤖 Bot/AI Detection: Automatically highlights comments mentioning "AI" or "bot"  or to help navigate suspicious posts
+-	🎨 UI Versatility: Supports both New and Old Reddit designs
+-	⚡ Lightweight & Modular: Toggle and adjust features in extension popup menu
 ________________________________________
 ## 📸 Preview
-(Coming Soon)
+<img width="1273" height="715" alt="Screenshot 2026-02-26 181356" src="https://github.com/user-attachments/assets/dfaf5ddd-87b5-4d63-90f2-0c4de147e66a" />
+
 ________________________________________
 ## 🚀 Installation
 
@@ -24,15 +24,14 @@ ________________________________________
 
 ### For Developers (Manual Install)
 If you want to run this locally or contribute, clone the repo then:
-0.  Follow instructions in the To Build section below
+0.  Follow instructions in the *To Build* section below
 1.	Open your browser's extension management page (chrome://extensions or about:debugging).
 2.	Enable Developer Mode.
 3.	Click Load unpacked and select the dist or root folder of the cloned project, if on Firefox/Chrome respectively.
 
 ### To Build (VSCode)
 1.	npm install
-2.	npx vite build (For Popup Script)
-3.	npx vite build --config vite.profile.config.ts vite.post.config.ts (For Content Scripts)
+2.	npm run build:all
 
 ________________________________________
 ## 🛠️ Tech Stack
@@ -43,11 +42,12 @@ ________________________________________
 ________________________________________
 ## 📋 Potential Future Goals/Features
 -	[ ] Allow users to customize thresholds for new user and low comment karma checks via popup
--	[ ] Custom blacklisting of ill-intent profiles using local, or even global blacklists
+-	[ ] Custom blacklisting of ill-intent profiles using local, or global blacklists
 -	[ ] Use Natural Language Processing to do sentiment analysis of comments sections
 ________________________________________
 ## 📋 Architecture Diagram
-(Coming Soon)
+<img width="1449" height="1072" alt="Screenshot 2026-03-26 224526" src="https://github.com/user-attachments/assets/b99dadde-213d-4c98-a4c5-fa705f93c4d8" />
+
 ________________________________________
 ## 🤝 Contributing
 Contributions, improvement and feedback welcome. Feel free to fork and raise an issue/PR in the repo!
