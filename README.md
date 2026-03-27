@@ -12,7 +12,7 @@ ________________________________________
 -	⚡ Lightweight & Modular: Toggle and adjust features in extension popup menu
 ________________________________________
 ## 📸 Preview
-<img width="1273" height="715" alt="Screenshot 2026-02-26 181356" src="https://github.com/user-attachments/assets/dfaf5ddd-87b5-4d63-90f2-0c4de147e66a" />
+![0](https://github.com/user-attachments/assets/490f70c5-5f77-43fb-ba12-591a2c70a2ff)
 
 ________________________________________
 ## 🚀 Installation
