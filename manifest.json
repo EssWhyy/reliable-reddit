@@ -9,11 +9,11 @@
   },
   "content_scripts": [
     {
-    "matches": ["*://*.reddit.com/r/*"],
+    "matches": ["https://*.reddit.com/*"],
       "js": ["dist/src/content.js"]
     },
     {
-      "matches": ["https://*.reddit.com/user/*"],
+      "matches": ["https://*.reddit.com/*"],
       "js": ["dist/src/contentProfile.js"],
       "run_at": "document_idle"
     }

@@ -48,7 +48,7 @@ const Popup: React.FC = () => {
 
 
   const handleRedirect = () => {
-    window.open("https://github.com/your-repo", "_blank");
+    window.open("https://github.com/EssWhyy/reliable-reddit", "_blank");
   };
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);

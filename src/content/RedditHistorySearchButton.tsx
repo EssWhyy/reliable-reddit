@@ -9,7 +9,11 @@ const SearchButton: React.FC<SearchButtonProps> = ({ username, isCommentsSection
   const handleClick = () => {
     const searchUrl = `https://arctic-shift.photon-reddit.com/search?fun=posts_search&author=${username}&limit=10&sort=desc`;
     const searchCommentsUrl = `https://arctic-shift.photon-reddit.com/search?fun=comments_search&author=${username}&limit=10&sort=desc`;
-    window.location.href = isCommentsSection ? searchCommentsUrl : searchUrl;
+    
+    const targetUrl = isCommentsSection ? searchCommentsUrl : searchUrl;
+
+    // Opens the URL in a new tab
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
