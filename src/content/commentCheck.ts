@@ -10,6 +10,7 @@ interface RedditComment {
   data: {
     body?: string;
     permalink: string;
+    author?: string;
     replies?: {
       data?: {
         children?: RedditComment[];
@@ -36,7 +37,10 @@ export async function getAIMentions(): Promise<AiComment | null> {
         if (item.kind !== "t1") continue;
 
         const body = item.data.body ?? "";
+        const author = item.data.author ?? "";
 
+        // Skip if author is AutoMod
+        if (author.toLowerCase() === "automoderator") continue;
         if (regex.test(body)) {
           return {
             body,
@@ -113,6 +117,17 @@ export async function highlightAiBotComments(): Promise<void> {
 
     commentBoxes.forEach(commentBox => {
       if (commentBox.dataset.aiHighlighted) return;
+
+
+      let author = "";
+      if (isOldReddit) {
+        author = commentBox.querySelector(".author")?.textContent ?? "";
+      } else {
+        author = commentBox.getAttribute("author") ?? "";
+      }
+
+      // Skip if automod
+      if (author.toLowerCase() === "automoderator") return;
 
       // Get only the top level comment text element
       const firstCommentEl = commentBox.querySelector<HTMLElement>(selectors.commentText);
