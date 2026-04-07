@@ -2,7 +2,8 @@
 
 Reliable Reddit is a lightweight browser extension designed to pull back the curtain on Reddit content, enhancing transparency and context for the Reddit community. By surfacing hidden metrics and highlighting automated activity, it helps users distinguish between genuine community engagement and potential manipulation.
 
-Install for Chrome | Install for Firefox (to be updated)
+INSTALL FOR:
+[Chrome](https://chromewebstore.google.com/detail/reliable-reddit-post-user/hhhlpbofpofmikalckhplbinjlpflpmm) | [Firefox](https://addons.mozilla.org/en-US/firefox/addon/reliable-reddit-post-insights/)
 ________________________________________
 ## ✨ Key Features
 -	📊 Visual Upvote Ratio: See post sentiment at a glance with a YouTube-style like/dislike bar on every post.
@@ -35,15 +36,15 @@ If you want to run this locally or contribute, clone the repo then:
 
 ________________________________________
 ## 🛠️ Tech Stack
--	TypeScript (ES6+): Core logic and DOM manipulation.
+-	TypeScript: Core logic and DOM manipulation.
 -	React: Custom UI components for the ratio bar and settings dashboard.
--	WebExtensions API (Express): Cross-browser compatibility layer for Chrome and Firefox.
+-	WebExtensions API: Cross-browser compatibility layer for Chrome and Firefox.
 -	Vite: Build tool and Bundler for the project
 ________________________________________
 ## 📋 Potential Future Goals/Features
--	[ ] Allow users to customize thresholds for new user and low comment karma checks via popup
+-	[ ] Custom filtering of specific words in comments
 -	[ ] Custom blacklisting of ill-intent profiles using local, or global blacklists
--	[ ] Use Natural Language Processing to do sentiment analysis of comments sections
+-	[ ] Use Natural Language Processing to do sentiment analysis of comments sections or entire subreddits
 ________________________________________
 ## 📋 Architecture Diagram
 <img width="1449" height="1072" alt="Screenshot 2026-03-26 224526" src="https://github.com/user-attachments/assets/b99dadde-213d-4c98-a4c5-fa705f93c4d8" />
