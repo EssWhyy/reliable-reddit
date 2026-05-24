@@ -5,6 +5,7 @@ export interface OpData {
   commentKarma: number;
   postKarma: number;
   cakeDay: string;
+  isHistoryHidden: boolean;
 }
 
 export function useOpData(isOldReddit: boolean) {
@@ -29,33 +30,54 @@ export function useOpData(isOldReddit: boolean) {
 
       try {
         const u = new URL(window.location.href.replace(/\/$/, ""));
-        let requestUrl = u.hostname.includes("old.reddit.com")  // Prevent CORS issues
-          ? `https://old.reddit.com/user/${username}/about.json`
-          : `https://www.reddit.com/user/${username}/about.json`;
+        const baseUrl = u.hostname.includes("old.reddit.com") 
+          ? "https://old.reddit.com" 
+          : "https://www.reddit.com";
 
-        const resp = await fetch(
-          requestUrl
-        );
+        // 1. Fetch primary profile data
+        const resp = await fetch(`${baseUrl}/user/${username}/about.json`);
         if (!resp.ok) return;
 
         const data = (await resp.json()).data;
+        const cakeDay = new Date(data.created_utc * 1000).toLocaleDateString();
+        
+        const hasKarma = data.link_karma > 0 || data.comment_karma > 0;
 
-        const cakeDay = new Date(
-          data.created_utc * 1000
-        ).toLocaleDateString();
-
-        setOpData({
+        const initialOpData: OpData = {
           karma: data.total_karma,
           commentKarma: data.comment_karma,
           postKarma: data.link_karma,
-          cakeDay,
-        });
+          cakeDay: cakeDay,
+          isHistoryHidden: false
+        };
+        
+        setOpData(initialOpData);
 
+        // Append initial text decoration to DOM
         const info = document.createElement("span");
+        info.id = "op-metadata-tracker"; // Added ID to easily reference or update later
         info.textContent = ` • Cake Day: ${cakeDay} • ${data.link_karma} post karma • ${data.comment_karma} comment karma`;
-        info.style.fontStyle = "bold";
+        info.style.fontWeight = "bold";
 
         tracker.appendChild(info);
+
+        // 2. Conditional check for hidden profile history
+        if (hasKarma) {
+          try {
+            const historyResp = await fetch(`${baseUrl}/user/${username}/submitted.json?limit=1`);
+            if (historyResp.ok) {
+              const historyData = await historyResp.json();
+              const isHidden = historyData.data.children.length === 0;
+
+              if (isHidden) {
+                setOpData(prev => prev ? { ...prev, isHistoryHidden: true } : null);
+              }
+            }
+          } catch (historyErr) {
+            console.error("Failed to verify profile history visibility status", historyErr);
+          }
+        }
+
       } catch (e) {
         console.error("Failed to fetch OP data", e);
       }

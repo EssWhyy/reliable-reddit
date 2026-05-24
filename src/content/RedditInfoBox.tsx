@@ -81,10 +81,12 @@ const RedditInfoBox: React.FC = () => {
         <p>🍼 User is a new account, less than {settings.minMonths} months old</p>
       )}
 
+      {opData.isHistoryHidden && (
+        <p>🔒 User hid their post & comment history</p>
+      )}
+
       {lowCommentKarma && (
-        <p>
-          📉 Low comment karma (Under {settings.karmaRatio}% of post karma)
-        </p>
+        <p>📉 User has low comment karma (under {settings.karmaRatio}% of post karma)</p>
       )}
 
       {settings.isEnabled && aiComment && (
