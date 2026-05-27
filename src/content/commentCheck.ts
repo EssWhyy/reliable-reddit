@@ -119,15 +119,38 @@ export async function highlightAiBotComments(): Promise<void> {
       if (commentBox.dataset.aiHighlighted) return;
 
 
+      // --- MODERATOR & APP EXCLUSION LOGIC ---
+      let isModOrApp = false;
       let author = "";
+
       if (isOldReddit) {
-        author = commentBox.querySelector(".author")?.textContent ?? "";
+        const authorEl = commentBox.querySelector(".author");
+        author = authorEl?.textContent ?? "";
+        
+        // Old Reddit tags moderator elements with the "moderator" class
+        if (authorEl?.classList.contains("moderator")) {
+          isModOrApp = true;
+        }
       } else {
         author = commentBox.getAttribute("author") ?? "";
+        
+        // Modern Reddit uses the "is-moderator" attribute on the shreddit-comment element
+        if (commentBox.hasAttribute("is-moderator")) {
+          isModOrApp = true;
+        }
       }
 
-      // Skip if automod
-      if (author.toLowerCase() === "automoderator") return;
+      const lowerAuthor = author.toLowerCase();
+
+      // Catch AutoModerator, specific known bot accounts, or common automated app naming schemes
+      if (
+        isModOrApp || 
+        lowerAuthor === "automoderator" || 
+        lowerAuthor.endsWith("_mod") || 
+        lowerAuthor.startsWith("mod_")
+      ) {
+        return; 
+      }
 
       // Get only the top level comment text element
       const firstCommentEl = commentBox.querySelector<HTMLElement>(selectors.commentText);
