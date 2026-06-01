@@ -22,7 +22,11 @@ interface RedditComment {
 //This simply checks if there are any AI/Bot Mentions
 export async function getAIMentions(): Promise<AiComment | null> {
   try {
-    const url = window.location.href.replace(/\/$/, "") + ".json";
+    const cleanUrl = window.location.href
+      .replace(/\/deleted_by_user\/?$/, "")
+      .replace(/\/$/, "");
+      
+    const url = cleanUrl + ".json";
     const res = await fetch(url);
 
     if (!res.ok) return null;

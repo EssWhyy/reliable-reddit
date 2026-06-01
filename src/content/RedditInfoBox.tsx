@@ -50,8 +50,10 @@ const RedditInfoBox: React.FC = () => {
 
   const karmaPercentage = (opData.commentKarma / Math.max(opData.postKarma, 1)) * 100;
   const lowCommentKarma = 
-    opData.commentKarma < 0 || 
-    (opData.postKarma >= 1000 && karmaPercentage < settings.karmaRatio);
+      !opData.isDeletedUser && (
+        opData.commentKarma < 0 || 
+        (opData.postKarma >= 1000 && karmaPercentage < settings.karmaRatio)
+      );
 
   const accountAgeMs = Date.now() - new Date(opData.cakeDay).getTime();
   const limitMs = settings.minMonths * 30.44 * 24 * 60 * 60 * 1000; 
