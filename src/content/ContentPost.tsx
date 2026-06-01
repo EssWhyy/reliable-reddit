@@ -5,7 +5,6 @@ import RedditInfoBox from "./RedditInfoBox";
  * Main content script for Reddit Post page
  */
 
-
 const POST_URL_RE = /reddit\.com\/r\/.+\/comments\/(?!.*\?entry_point=)/;
 let root: Root | null = null;
 let lastInjectedUrl: string | null = null;
@@ -24,17 +23,14 @@ function getPostBaseUrl(url: string): string {
  * Supports Old Reddit, New Reddit, and the latest "Shreddit" interface.
  */
 function findAnchorElement(): HTMLElement | Element | null {
-  // 1. Shreddit (Modern Reddit) - look for the main post component
   const shredditPost = document.querySelector('shreddit-post');
   if (shredditPost) {
     return shredditPost.querySelector('h1') || shredditPost;
   }
 
-  // 2. Old Reddit
   const linkInfo = document.querySelector(".linkinfo");
   if (linkInfo) return linkInfo as HTMLElement;
 
-  // 3. New Reddit (2018-2023 version)
   const h1 = document.querySelector("h1");
   if (h1) return h1;
 
@@ -54,20 +50,16 @@ async function inject() {
   const baseUrl = getPostBaseUrl(currentUrl);
   const anchor = findAnchorElement();
 
-  // If we can't find where to put it yet, or it's already there for this URL, bail.
-  const existing = document.getElementById("reddit-info-box-container");
-  if (!anchor || (existing && existing.dataset.url === baseUrl)) {
-    return;
-  }
+  // If anchor isn't ready yet, wait for the next observer tick
+  if (!anchor) return;
 
-  // Clean up previous instance if the URL changed but the element persisted
-  if (existing) cleanup();
+  // ALWAYS clean up any stale container or broken React root before a fresh injection
+  cleanup();
 
   const container = document.createElement("div");
   container.id = "reddit-info-box-container";
   container.dataset.url = baseUrl;
   
-  // Apply a small margin for spacing depending on the UI
   container.style.marginTop = "15px";
   container.style.marginBottom = "15px";
 
@@ -81,11 +73,10 @@ async function inject() {
 function cleanup() {
   const existing = document.getElementById("reddit-info-box-container");
   if (existing) {
-    try { root?.unmount(); } catch (e) { /* ignore unmount errors */ }
+    try { root?.unmount(); } catch (e) { /* ignore */ }
     existing.remove();
   }
   root = null;
-  lastInjectedUrl = null;
 }
 
 /**
@@ -97,22 +88,37 @@ function boot() {
   // Run immediately
   inject();
 
+  // Handle browser bfcache navigation explicitly
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+      lastInjectedUrl = null;
+      inject();
+    }
+  });
+
   let debounceTimer: ReturnType<typeof setTimeout>;
   
   const observer = new MutationObserver(() => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      // Check if we need to inject (either URL changed or DOM was wiped)
-      const currentBase = getPostBaseUrl(location.href);
-      const isPost = POST_URL_RE.test(location.href);
-      const missing = !document.getElementById("reddit-info-box-container");
+      const currentUrl = location.href;
+      const currentBase = getPostBaseUrl(currentUrl);
+      const isPost = POST_URL_RE.test(currentUrl);
+      const container = document.getElementById("reddit-info-box-container");
 
-      if (isPost && (currentBase !== lastInjectedUrl || missing)) {
-        inject();
-      } else if (!isPost && lastInjectedUrl) {
+      // Condition 1: On post page, but either the tracking URL doesn't match 
+      // OR the physical DOM container was destroyed/swapped out by Reddit's router.
+      if (isPost) {
+        if (currentBase !== lastInjectedUrl || !container) {
+          inject();
+        }
+      } 
+      // Condition 2: Navigated away from a post page to a listing page, clean it up.
+      else if (!isPost && lastInjectedUrl) {
         cleanup();
+        lastInjectedUrl = null; 
       }
-    }, 100); // 100ms debounce to stay performant
+    }, 100); 
   });
 
   observer.observe(document.body, {
