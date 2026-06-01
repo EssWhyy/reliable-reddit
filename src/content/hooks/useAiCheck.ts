@@ -3,7 +3,7 @@ import { getAIMentions, highlightAiBotComments } from "../commentCheck";
 
 export function useAICheck() {
   const [aiComment, setAiComment] = useState<{ body: string; permalink: string } | null>(null);
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [isEnabled, setIsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     chrome.storage.local.get(["aiHighlightEnabled"], (result) => {
@@ -26,7 +26,6 @@ export function useAICheck() {
       setAiComment(null); 
       return;
     }
-
     const checkAI = async () => {
       const result = await getAIMentions();
       if (result) setAiComment(result);

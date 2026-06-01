@@ -7,7 +7,7 @@ import { FaReddit, FaGithub } from "react-icons/fa";
 
 const Popup: React.FC = () => {
   // These hooks will be used within content script. Default values
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(true);
   const [months, setMonths] = useState<number>(3);
   const [karmaPercent, setKarmaPercent] = useState<string>("1");
 
