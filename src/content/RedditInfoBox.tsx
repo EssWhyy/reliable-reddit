@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { usePostVotes } from "./hooks/usePostVotes";
 import { useOpData } from "./hooks/useOpData";
 import { useAICheck } from "./hooks/useAICheck";
+import { parse } from 'date-fns';
 
 const RedditInfoBox: React.FC = () => {
   const { postInfo, error, isOldReddit } = usePostVotes();
@@ -55,7 +56,9 @@ const RedditInfoBox: React.FC = () => {
         (opData.postKarma >= 1000 && karmaPercentage < settings.karmaRatio)
       );
 
-  const accountAgeMs = Date.now() - new Date(opData.cakeDay).getTime();
+  const cakeDayDate = parse(opData.cakeDay, 'dd/MM/yyyy', new Date());
+  const accountAgeMs = Date.now() - cakeDayDate.getTime();
+
   const limitMs = settings.minMonths * 30.44 * 24 * 60 * 60 * 1000; 
   const isNewAccount = accountAgeMs <= limitMs;
 
