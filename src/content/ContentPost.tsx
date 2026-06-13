@@ -20,7 +20,7 @@ function getPostBaseUrl(url: string): string {
 
 /**
  * Finds the best anchor point for injection. 
- * Supports Old Reddit, New Reddit, and the latest "Shreddit" interface.
+ * Supports Old Reddit, New Reddit, and the latest Shreddit interface.
  */
 function findAnchorElement(): HTMLElement | Element | null {
   const shredditPost = document.querySelector('shreddit-post');
@@ -53,7 +53,7 @@ async function inject() {
   // If anchor isn't ready yet, wait for the next observer tick
   if (!anchor) return;
 
-  // ALWAYS clean up any stale container or broken React root before a fresh injection
+  // Always clean up any stale container or broken React root before a fresh injection
   cleanup();
 
   const container = document.createElement("div");
@@ -80,9 +80,9 @@ function cleanup() {
 }
 
 /**
- * The "Observer Loop" approach:
- * Instead of hooking into tricky History APIs, we watch the DOM for changes.
- * Reddit's SPA navigation always triggers DOM mutations.
+ * "Observer Loop" approach:
+ * Instead of hooking into tricky History APIs, watch the DOM for changes
+ * Reddit's SPA navigation always triggers DOM mutations
  */
 function boot() {
   // Run immediately
@@ -127,7 +127,6 @@ function boot() {
   });
 }
 
-// Start the engine
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot);
 } else {

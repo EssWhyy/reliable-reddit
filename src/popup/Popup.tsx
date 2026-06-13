@@ -6,11 +6,13 @@ import {
 import { FaReddit, FaGithub } from "react-icons/fa";
 
 const Popup: React.FC = () => {
-  // These hooks will be used within content script. Default values
+
+  // Default value hooks
   const [isEnabled, setIsEnabled] = useState(true);
   const [months, setMonths] = useState<number>(3);
   const [karmaPercent, setKarmaPercent] = useState<string>("1");
 
+  // compatibility with firefox
   const storage = typeof chrome !== "undefined" ? chrome.storage.local : (window as any).browser?.storage.local;
 
 

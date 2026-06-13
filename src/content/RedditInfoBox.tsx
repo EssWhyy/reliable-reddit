@@ -83,7 +83,7 @@ const RedditInfoBox: React.FC = () => {
       </div>
 
       {isNewAccount && (
-        <p>🍼 User is a new account, less than {settings.minMonths} months old</p>
+        <p>🍼 User is new, account under {settings.minMonths} months old</p>
       )}
 
       {opData.isHistoryHidden && (

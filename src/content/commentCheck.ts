@@ -68,7 +68,7 @@ export async function getAIMentions(): Promise<AiComment | null> {
   }
 }
 
-// This highlights the actual comment boxes on Reddit Post Page
+// This highlights the actual comment boxes on Reddit Post Page, ignores most moderators and bots
 export async function highlightAiBotComments(): Promise<void> {
   const isOldReddit = location.hostname.startsWith("old.");
 
@@ -82,7 +82,7 @@ export async function highlightAiBotComments(): Promise<void> {
         commentText: "shreddit-comment[depth] p",
       };
 
-  const keywordRegex = /\b(ai|bot)\b/i;
+  const keywordRegex = /\b(ai|(?<!\bI am a )bot)\b/i;
 
   const waitForElement = <T extends Element>(
     selector: string,
