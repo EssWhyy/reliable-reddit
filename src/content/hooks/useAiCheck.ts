@@ -3,17 +3,17 @@ import { getAIMentions, highlightAiBotComments } from "../commentCheck";
 
 export function useAICheck() {
   const [aiComment, setAiComment] = useState<{ body: string; permalink: string } | null>(null);
-  const [isEnabled, setIsEnabled] = useState<boolean>(true);
+  const [isAICheckEnabled, setisAICheckEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     chrome.storage.local.get(["aiHighlightEnabled"], (result) => {
-      setIsEnabled(!!result.aiHighlightEnabled);
+      setisAICheckEnabled(!!result.aiHighlightEnabled);
     });
 
     // Check if user toggles popup while page is open
     const listener = (changes: any) => {
       if (changes.aiHighlightEnabled) {
-        setIsEnabled(changes.aiHighlightEnabled.newValue);
+        setisAICheckEnabled(changes.aiHighlightEnabled.newValue);
       }
     };
     chrome.storage.onChanged.addListener(listener);
@@ -22,7 +22,7 @@ export function useAICheck() {
   }, []);
 
   useEffect(() => {
-    if (!isEnabled) {
+    if (!isAICheckEnabled) {
       setAiComment(null); 
       return;
     }
@@ -37,7 +37,7 @@ export function useAICheck() {
 
     checkAI();
     highlightAI();
-  }, [isEnabled]); // Re-run when toggle changes
+  }, [isAICheckEnabled]); // Re-run when toggle changes
 
   return aiComment;
 }

@@ -8,7 +8,7 @@ import { FaReddit, FaGithub } from "react-icons/fa";
 const Popup: React.FC = () => {
 
   // Default value hooks
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isAICheckEnabled, setisAICheckEnabled] = useState(true);
   const [months, setMonths] = useState<number>(3);
   const [karmaPercent, setKarmaPercent] = useState<string>("1");
 
@@ -20,7 +20,7 @@ const Popup: React.FC = () => {
     if (!storage) return;
 
     storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio"], (result: any) => {
-      if (result.aiHighlightEnabled !== undefined) setIsEnabled(result.aiHighlightEnabled);
+      if (result.aiHighlightEnabled !== undefined) setisAICheckEnabled(result.aiHighlightEnabled);
       if (result.minMonths !== undefined) setMonths(result.minMonths);
       if (result.karmaRatio !== undefined) setKarmaPercent(result.karmaRatio);
     });
@@ -29,7 +29,7 @@ const Popup: React.FC = () => {
 
   const handleToggle = (event: ChangeEvent<HTMLInputElement>) => {
     const val = event.target.checked;
-    setIsEnabled(val);
+    setisAICheckEnabled(val);
     storage?.set({ aiHighlightEnabled: val });
   };
 
@@ -69,7 +69,7 @@ const Popup: React.FC = () => {
       {/* Toggle Section */}
       <Box mt={2} sx={{ textAlign: "left" }}>
         <FormControlLabel
-          control={<Checkbox checked={isEnabled} onChange={handleToggle} color="primary" />}
+          control={<Checkbox checked={isAICheckEnabled} onChange={handleToggle} color="primary" />}
           label={<Typography variant="body2">Highlight AI mentions</Typography>}
         />
       </Box>

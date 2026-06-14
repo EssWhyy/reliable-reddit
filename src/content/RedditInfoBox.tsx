@@ -10,7 +10,7 @@ const RedditInfoBox: React.FC = () => {
   const aiComment = useAICheck();
 
   const [settings, setSettings] = useState({
-    isEnabled: true,
+    isAICheckEnabled: true,
     minMonths: 3,
     karmaRatio: 1.0,
   });
@@ -21,7 +21,7 @@ const RedditInfoBox: React.FC = () => {
     if (!storage) return;
     storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio"], (result: any) => {
       setSettings({
-        isEnabled: result.aiHighlightEnabled ?? true,
+        isAICheckEnabled: result.aiHighlightEnabled ?? true,
         minMonths: result.minMonths ?? 3,
         karmaRatio: parseFloat(result.karmaRatio ?? "1.0"),
       });
@@ -94,7 +94,7 @@ const RedditInfoBox: React.FC = () => {
         <p>📉 User has low comment karma (under {settings.karmaRatio}% of post karma)</p>
       )}
 
-      {settings.isEnabled && aiComment && (
+      {settings.isAICheckEnabled && aiComment && (
         <p>
           🤖 &apos;AI/Bot&apos; mentioned in{" "}
           <a href={aiComment.permalink} target="_blank" rel="noopener noreferrer" style={{ color: "#FF4500" }}>

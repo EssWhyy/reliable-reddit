@@ -1,5 +1,3 @@
-// Detects AI/Bot Related Mentions in Reddit Comments
-
 interface AiComment {
   body: string;
   permalink: string;
