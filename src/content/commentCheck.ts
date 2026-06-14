@@ -14,7 +14,13 @@ interface RedditComment {
         children?: RedditComment[];
       };
     };
+    score: number;
   };
+}
+
+export interface TargetCommentData {
+  text: string;
+  upvotes: number;
 }
 
 //This simply checks if there are any AI/Bot Mentions
@@ -170,5 +176,70 @@ export async function highlightAiBotComments(): Promise<void> {
     });
   } catch (err) {
     console.warn("Failed to highlight AI/Bot comments:", err);
+  }
+}
+
+// For Sentiment Analysis
+export async function extractTargetComments(limitX: number): Promise<TargetCommentData[]> {
+  try {
+    // Clean up the URL to make a valid Reddit JSON endpoint request
+    console.log('flan2')
+    const cleanUrl = window.location.href
+      .replace(/\/deleted_by_user\/?$/, "")
+      .replace(/\/$/, "");
+      
+    const url = cleanUrl + ".json";
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      console.warn("Failed to fetch Reddit thread data.");
+      return [];
+    }
+
+    const data = await res.json();
+    // Reddit JSON structure puts the comments in the second array element (index 1)
+    const comments: RedditComment[] = data[1]?.data?.children ?? [];
+
+    const extractedData: TargetCommentData[] = [];
+
+    // Helper function to recursively traverse comment replies
+    const traverseAndExtract = (list: RedditComment[]) => {
+      for (const item of list) {
+        // Stop parsing if we've already hit the requested limit
+        if (extractedData.length >= limitX) break;
+
+        // "t1" represents actual comments (ignoring things like "more" buttons)
+        if (item.kind !== "t1") continue;
+
+        const body = item.data.body ?? "";
+        const author = item.data.author ?? "";
+        
+        // Use Math.max to guarantee upvotes are at least 1 (avoids multiplying by 0 later)
+        const upvotes = Math.max(1, item.data.score ?? 1);
+
+        // Filter out empty comments and AutoModerator posts
+        if (author.toLowerCase() !== "automoderator" && body.trim().length > 0) {
+          extractedData.push({
+            text: body,
+            upvotes: upvotes
+          });
+        }
+
+        // If this comment has replies, recursively dig into them
+        const replies = item.data.replies?.data?.children;
+        if (replies) {
+          traverseAndExtract(replies);
+        }
+      }
+    };
+
+    // Run the extraction process
+    traverseAndExtract(comments);
+    
+    return extractedData;
+
+  } catch (err) {
+    console.error("Failed to extract target comments:", err);
+    return [];
   }
 }
