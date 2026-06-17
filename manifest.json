@@ -19,7 +19,6 @@
     }
   ],
   "background": {
-    "service_worker": "dist/src/background/huggingFaceSentiment.js",
     "scripts": ["dist/src/background/huggingFaceSentiment.js"],
       "type": "module"
   },

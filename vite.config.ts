@@ -4,6 +4,9 @@ import path from 'node:path'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+  },
   plugins: [react(),     
     viteStaticCopy({
       targets: [

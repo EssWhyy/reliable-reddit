@@ -28,6 +28,7 @@
     "build:popup": "vite build --config vite.config.js",
     "build:post": "vite build --config vite.post.config.js",
     "build:profile": "vite build --config vite.profile.config.js",
-    "build:all": "npm run build:popup && npm run build:post && npm run build:profile"
+    "build:background": "vite build --config vite.background.config.js",
+    "build:all": "npm run build:popup && npm run build:post && npm run build:profile && npm run build:background"
   }
 }
