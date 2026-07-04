@@ -4,6 +4,9 @@
   "version": "1.0",
   "description": "Get useful info on Reddit posts & users, for New & Old Reddit desktop UI.",
   "permissions": ["storage"],
+  "host_permissions": [
+    "https://api-inference.huggingface.co/*"
+  ],
   "action": {
     "default_popup": "dist/src/popup/index.html"
   },

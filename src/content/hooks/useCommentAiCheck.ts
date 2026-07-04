@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAIMentions, highlightAiBotComments } from "../commentCheck";
 
-export function useAICheck() {
+export function useCommentAICheck(comments: any[] | null) {
   const [aiComment, setAiComment] = useState<{ body: string; permalink: string } | null>(null);
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
 
@@ -23,21 +23,21 @@ export function useAICheck() {
 
   useEffect(() => {
     if (!isEnabled) {
-      setAiComment(null); 
+      setAiComment(null);
       return;
     }
-    const checkAI = async () => {
-      const result = await getAIMentions();
-      if (result) setAiComment(result);
-    };
+
+    // No extra fetch here — reuses the comment tree usePostVotes already
+    // pulled down from the post's .json endpoint.
+    const result = getAIMentions(comments);
+    setAiComment(result);
 
     const highlightAI = async () => {
       await highlightAiBotComments();
     };
 
-    checkAI();
     highlightAI();
-  }, [isEnabled]); // Re-run when toggle changes
+  }, [isEnabled, comments]); // Re-run when toggle changes or comments arrive
 
   return aiComment;
 }

@@ -20,47 +20,39 @@ interface RedditComment {
 }
 
 //This simply checks if there are any AI/Bot Mentions
-export async function getAIMentions(): Promise<AiComment | null> {
-  try {
-    const cleanUrl = window.location.href
-      .replace(/\/deleted_by_user\/?$/, "")
-      .replace(/\/$/, "");
-      
-    const url = cleanUrl + ".json";
-    const res = await fetch(url);
+// Takes the comment tree the caller already fetched (e.g. from usePostVotes'
+// post .json response) instead of re-fetching the same endpoint.
+export function getAIMentions(comments: RedditComment[] | null): AiComment | null {
+  if (!comments || comments.length === 0) return null;
 
-    if (!res.ok) return null;
+  const regex = /\b(ai|bot)\b/i;
 
-    const data = await res.json();
+  const traverse = (list: RedditComment[]): AiComment | null => {
+    for (const item of list) {
+      if (item.kind !== "t1") continue;
 
-    const comments: RedditComment[] = data[1]?.data?.children ?? [];
-    const regex = /\b(ai|bot)\b/i;
+      const body = item.data.body ?? "";
+      const author = item.data.author ?? "";
 
-    const traverse = (list: RedditComment[]): AiComment | null => {
-      for (const item of list) {
-        if (item.kind !== "t1") continue;
-
-        const body = item.data.body ?? "";
-        const author = item.data.author ?? "";
-
-        // Skip if author is AutoMod
-        if (author.toLowerCase() === "automoderator") continue;
-        if (regex.test(body)) {
-          return {
-            body,
-            permalink: "https://www.reddit.com" + item.data.permalink,
-          };
-        }
-
-        const replies = item.data.replies?.data?.children;
-        if (replies) {
-          const found = traverse(replies);
-          if (found) return found;
-        }
+      // Skip if author is AutoMod
+      if (author.toLowerCase() === "automoderator") continue;
+      if (regex.test(body)) {
+        return {
+          body,
+          permalink: "https://www.reddit.com" + item.data.permalink,
+        };
       }
-      return null;
-    };
 
+      const replies = item.data.replies?.data?.children;
+      if (replies) {
+        const found = traverse(replies);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  try {
     return traverse(comments);
   } catch (err) {
     console.error("AI comment check failed", err);
