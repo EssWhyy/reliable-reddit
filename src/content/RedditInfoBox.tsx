@@ -2,133 +2,26 @@ import React, { useEffect, useState } from "react";
 import { usePostVotes } from "./hooks/usePostVotes";
 import { useOpData } from "./hooks/useOpData";
 import { useCommentAICheck } from "./hooks/useCommentAiCheck";
-import { useTextPostAICheck } from "./hooks/useTextPostAiCheck";
+import { usePicPostAICheck } from "./hooks/usePicPostAiCheck";
 import { parse } from 'date-fns';
-
-/**
- * Inspects the live DOM to figure out whether the current post is
- * text-based or image/gallery-based. Returns `null` if it can't be
- * determined (e.g. video/link posts, or the post hasn't rendered yet).
- */
-function detectPostType(isOldReddit: boolean): "text" | "image" | null {
-  if (!isOldReddit) {
-    // New Reddit renders a <shreddit-post post-type="..."> custom element.
-    const shredditPost = document.querySelector("shreddit-post");
-    const type = shredditPost?.getAttribute("post-type");
-
-    if (type === "text") return "text";
-    if (type === "image" || type === "gallery") return "image";
-    return null;
-  }
-
-  // Old Reddit: the post container is `.thing.link`.
-  const thing = document.querySelector(".thing.link");
-  if (!thing) return null;
-
-  if (thing.classList.contains("self")) return "text";
-
-  // Old Reddit doesn't have a dedicated "image post" class, but image
-  // posts get an expando thumbnail with an <img>, while link posts to
-  // articles typically don't.
-  const hasImageThumbnail = !!thing.querySelector(".thumbnail img");
-  if (hasImageThumbnail) return "image";
-
-  return null;
-}
-
-/**
- * Pulls the selftext body out of the DOM for text posts. Returns `null`
- * if no post body can be found (e.g. it's not a text post, or the page
- * hasn't finished rendering).
- */
-function extractPostText(isOldReddit: boolean): string | null {
-  if (!isOldReddit) {
-    const shredditPost = document.querySelector("shreddit-post");
-    const textBody = shredditPost?.querySelector('[slot="text-body"]');
-    const text = textBody?.textContent?.trim();
-    return text && text.length > 0 ? text : null;
-  }
-
-  const thing = document.querySelector(".thing.link.self");
-  const body = thing?.querySelector(".usertext-body .md");
-  const text = body?.textContent?.trim();
-  return text && text.length > 0 ? text : null;
-}
-
-/**
- * Formats the raw Hugging Face response into a short human-readable line.
- * Falls back gracefully since the exact response shape can vary.
- */
-function formatAiResult(result: any): string {
-  try {
-    const predictions = Array.isArray(result?.[0]) ? result[0] : result;
-    if (Array.isArray(predictions)) {
-      const aiPrediction = predictions.find((p: any) =>
-        /^(label_1|ai|1)$/i.test(String(p?.label))
-      );
-      if (aiPrediction && typeof aiPrediction.score === "number") {
-        return `${Math.round(aiPrediction.score * 100)}% likely AI-generated`;
-      }
-      const top = [...predictions].sort((a: any, b: any) => b.score - a.score)[0];
-      if (top && typeof top.score === "number") {
-        return `Top match: ${top.label} (${Math.round(top.score * 100)}%)`;
-      }
-    }
-  } catch {
-    // fall through to generic message below
-  }
-  return "Check complete.";
-}
 
 const RedditInfoBox: React.FC = () => {
   const { postInfo, error, isOldReddit, comments } = usePostVotes();
   const opData = useOpData(isOldReddit);
   const aiComment = useCommentAICheck(comments);
 
+  // Hook for AI image checking
+  const { checkImage, loading: aiLoading, error: aiError, result: aiResult } = usePicPostAICheck();
+
   const [settings, setSettings] = useState({
     isEnabled: true,
     minMonths: 3,
     karmaRatio: 1.0,
+    apiKey: "",
   });
 
-  const [postType, setPostType] = useState<"text" | "image" | null>(null);
-  const [hasApiKey, setHasApiKey] = useState(false);
-  const { checkText, loading: aiCheckLoading, error: aiCheckError, result: aiCheckResult } = useTextPostAICheck();
-
-  useEffect(() => {
-    // The post DOM may not be fully painted the instant this component
-    // mounts, so try once immediately and once on the next tick.
-    setPostType(detectPostType(isOldReddit));
-    const timeout = setTimeout(() => {
-      setPostType(detectPostType(isOldReddit));
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [isOldReddit]);
-
-  useEffect(() => {
-    const storageApi = typeof chrome !== "undefined" ? chrome.storage : (window as any).browser?.storage;
-    if (!storageApi?.local) return;
-
-    storageApi.local.get(["apiKey"], (result: any) => {
-      setHasApiKey(!!result?.apiKey);
-    });
-
-    // React live to the key being saved/cleared from the popup, instead of
-    // only checking once on mount (which would require a page reload).
-    const handleStorageChange = (changes: any, area: string) => {
-      if (area === "local" && "apiKey" in changes) {
-        setHasApiKey(!!changes.apiKey.newValue);
-      }
-    };
-    storageApi.onChanged?.addListener(handleStorageChange);
-    return () => storageApi.onChanged?.removeListener(handleStorageChange);
-  }, []);
-
-  const handleCheckForAI = () => {
-    const postText = extractPostText(isOldReddit);
-    if (!postText) return;
-    checkText(postText);
-  };
+  // DEBUG: State to hold the picture URL for debugging
+  const [currentPicUrl, setCurrentPicUrl] = useState<string | null>(null);
 
   const storage = typeof chrome !== "undefined" ? chrome.storage.local : (window as any).browser?.storage.local;
 
@@ -139,9 +32,34 @@ const RedditInfoBox: React.FC = () => {
         isEnabled: result.aiHighlightEnabled ?? true,
         minMonths: result.minMonths ?? 3,
         karmaRatio: parseFloat(result.karmaRatio ?? "1.0"),
+        apiKey: result.apiKey ?? "",
       });
     });
   }, []);
+
+  const handleAiCheckClick = () => {
+    let imageUrl: string | null = null;
+
+    if (isOldReddit) {
+      const anchor = document.querySelector<HTMLAnchorElement>("a.thumbnail, div.entry a.title");
+      if (anchor && anchor.href.match(/\.(jpeg|jpg|gif|png|webp)/i)) {
+        imageUrl = anchor.href;
+      }
+    } else {
+      const img = document.querySelector<HTMLImageElement>("shredit-post img, div[data-test-id='post-content'] img");
+      if (img) imageUrl = img.src;
+    }
+
+    if (imageUrl) {
+      checkImage(imageUrl);
+    } else {
+      alert("No image found on this post to analyze!");
+    }
+  };
+
+  const topResult = aiResult
+    ? [...aiResult].sort((a, b) => b.score - a.score)[0]
+    : null;
 
   const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
@@ -159,6 +77,19 @@ const RedditInfoBox: React.FC = () => {
     position: "relative",
     zIndex: 0,
   };
+
+  const buttonStyle: React.CSSProperties = {
+    marginTop: "10px",
+    padding: "6px 12px",
+    backgroundColor: "#FF4500",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: "bold",
+  };
+
 
   if (error) return <div style={boxStyle}>❌ {error}</div>;
   if (!postInfo || !opData) return null;
@@ -218,38 +149,44 @@ const RedditInfoBox: React.FC = () => {
         </p>
       )}
 
-      {postType === "text" && hasApiKey && (
-        <div style={{ marginTop: "8px" }}>
-          <button
-            onClick={handleCheckForAI}
-            disabled={aiCheckLoading}
-            style={{
-              padding: "6px 12px",
-              fontSize: "13px",
-              fontWeight: "bold",
-              fontFamily: "Verdana, Helvetica, sans-serif",
-              color: "#fff",
-              background: "#525252",
-              border: "none",
-              borderRadius: "16px",
-              cursor: aiCheckLoading ? "default" : "pointer",
-              opacity: aiCheckLoading ? 0.7 : 1,
-            }}
-          >
-            {aiCheckLoading ? "Checking…" : "Check text for AI"}
-          </button>
+      {/* AI Image Post Checker Section */}
 
-          {!aiCheckLoading && aiCheckResult && (
-            <p style={{ marginTop: "6px", fontWeight: "normal" }}>{formatAiResult(aiCheckResult)}</p>
-          )}
 
-          {!aiCheckLoading && aiCheckError && (
-            <p style={{ marginTop: "6px", fontWeight: "normal", color: "#d93025" }}>
-              {aiCheckError}
-            </p>
-          )}
-        </div>
-      )}
+      {/* ----------------- DEBUG SECTION ----------------- */}
+      <div style={{
+        backgroundColor: "rgba(255, 0, 0, 0.1)",
+        border: "1px dashed red",
+        padding: "6px",
+        marginBottom: "10px",
+        fontSize: "11px",
+        wordBreak: "break-all"
+      }}>
+        <p style={{ margin: 0 }}>🐛 <strong>DEBUG INFO</strong></p>
+        <p style={{ margin: "2px 0 0 0" }}>🔑 <strong>API Key:</strong> {settings.apiKey || "None"}</p>
+        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Image URL:</strong> {currentPicUrl || "Not selected yet"}</p>
+      </div>
+      {/* ------------------------------------------------- */}
+      
+      <div style={{ marginTop: "10px", borderTop: "1px dashed #ccc", paddingTop: "8px" }}>
+        <button 
+          onClick={handleAiCheckClick} 
+          disabled={aiLoading} 
+          style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
+        >
+          {aiLoading ? "🔍 Analyzing Image..." : "🖼️ Check Image with AI"}
+        </button>
+
+        {aiError && (
+          <p style={{ color: "#ff4d4d", marginTop: "6px" }}>⚠️ {aiError}</p>
+        )}
+
+        {topResult && (
+          <p style={{ marginTop: "6px" }}>
+            🎨 AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
+          </p>
+        )}
+      </div>
+
     </div>
   );
 };
