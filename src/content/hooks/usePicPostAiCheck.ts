@@ -11,7 +11,7 @@ export function usePicPostAICheck() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AiCheckResult[] | null>(null);
 
-  const checkImage = async (imageUrl: string) => {
+  const checkImage = async (imageUrl: string, apiKey: string) => { // 👈 Pass apiKey here
     setLoading(true);
     setError(null);
     setResult(null);
@@ -19,18 +19,15 @@ export function usePicPostAICheck() {
     const contextTag = `[AI-PIC-CHECK @ ${new Date().toLocaleTimeString()}]`;
 
     try {
-      // 1. Fetch apiKey directly from target web localStorage
-      const apiKey = localStorage.getItem('apiKey');
-
-      if (!apiKey) {
-        console.warn(`${contextTag} Aborted: Missing API Key in web localStorage.`);
-        throw new Error("Missing API Key in web local storage.");
+      if (!apiKey || apiKey.trim().length < 5) {
+        console.warn(`${contextTag} Aborted: Missing or invalid API Key.`);
+        throw new Error("Missing or invalid API key. Please set it in extension settings.");
       }
 
       console.log(`${contextTag} Sending image payload to background script...`);
 
-      // 2. Send request to background script
-      let response: any;
+      // Send request to background script matching background.ts interface
+      let response: any
       response = await browser.runtime.sendMessage({
         type: "AI_IMAGE_CHECK",
         payload: { apiKey, imageUrl },
@@ -44,8 +41,6 @@ export function usePicPostAICheck() {
         throw new Error(response.error || "Background script error during AI check.");
       }
 
-      // Response payload structure:
-      // [{'label': 'artificial', 'score': 0.999968409538269}, {'label': 'human', 'score': 3.154538353555836e-05}]
       setResult(response.data);
     } catch (err: any) {
       console.error(`${contextTag} Exception:`, err);

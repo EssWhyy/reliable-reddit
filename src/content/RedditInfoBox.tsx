@@ -37,21 +37,27 @@ const RedditInfoBox: React.FC = () => {
     });
   }, []);
 
-  const handleAiCheckClick = () => {
-    let imageUrl: string | null = null;
-
+  // Helper function to detect and retrieve image URL if available
+  const getImageUrl = (): string | null => {
     if (isOldReddit) {
-      const anchor = document.querySelector<HTMLAnchorElement>("a.thumbnail, div.entry a.title");
-      if (anchor && anchor.href.match(/\.(jpeg|jpg|gif|png|webp)/i)) {
-        imageUrl = anchor.href;
-      }
+      // Look for the img tag with class "preview" on old Reddit
+      const img = document.querySelector<HTMLImageElement>("img.preview");
+      return img?.src || null;
     } else {
-      const img = document.querySelector<HTMLImageElement>("shredit-post img, div[data-test-id='post-content'] img");
-      if (img) imageUrl = img.src;
+      // Look for the img tag with id "post-image" on new Reddit
+      const img = document.querySelector<HTMLImageElement>("img#post-image");
+      return img?.src || null;
     }
+  };
 
-    if (imageUrl) {
-      checkImage(imageUrl);
+  // Flag to verify if the post contains a picture
+  const detectedImageUrl = getImageUrl();
+  const isPicturePost = Boolean(detectedImageUrl);
+
+  const handleAiCheckClick = () => {
+    if (detectedImageUrl) {
+      setCurrentPicUrl(detectedImageUrl);
+      checkImage(detectedImageUrl, settings.apiKey);
     } else {
       alert("No image found on this post to analyze!");
     }
@@ -90,10 +96,8 @@ const RedditInfoBox: React.FC = () => {
     fontWeight: "bold",
   };
 
-
   if (error) return <div style={boxStyle}>❌ {error}</div>;
   if (!postInfo || !opData) return null;
-
 
   const karmaPercentage = (opData.commentKarma / Math.max(opData.postKarma, 1)) * 100;
   const lowCommentKarma = 
@@ -149,9 +153,6 @@ const RedditInfoBox: React.FC = () => {
         </p>
       )}
 
-      {/* AI Image Post Checker Section */}
-
-
       {/* ----------------- DEBUG SECTION ----------------- */}
       <div style={{
         backgroundColor: "rgba(255, 0, 0, 0.1)",
@@ -163,29 +164,33 @@ const RedditInfoBox: React.FC = () => {
       }}>
         <p style={{ margin: 0 }}>🐛 <strong>DEBUG INFO</strong></p>
         <p style={{ margin: "2px 0 0 0" }}>🔑 <strong>API Key:</strong> {settings.apiKey || "None"}</p>
-        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Image URL:</strong> {currentPicUrl || "Not selected yet"}</p>
+        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Image URL:</strong> {currentPicUrl || detectedImageUrl || "Not selected yet"}</p>
+        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Is Picture Post:</strong> {isPicturePost ? "Yes" : "No"}</p>
       </div>
       {/* ------------------------------------------------- */}
       
-      <div style={{ marginTop: "10px", borderTop: "1px dashed #ccc", paddingTop: "8px" }}>
-        <button 
-          onClick={handleAiCheckClick} 
-          disabled={aiLoading} 
-          style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
-        >
-          {aiLoading ? "🔍 Analyzing Image..." : "🖼️ Check Image with AI"}
-        </button>
+      {/* AI Image Post Checker Section - Only renders if this is a picture post */}
+      {isPicturePost && (
+        <div style={{ marginTop: "10px", borderTop: "1px dashed #ccc", paddingTop: "8px" }}>
+          <button 
+            onClick={handleAiCheckClick} 
+            disabled={aiLoading} 
+            style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
+          >
+            {aiLoading ? "🔍 Analyzing Image..." : "🖼️ Check Image with AI"}
+          </button>
 
-        {aiError && (
-          <p style={{ color: "#ff4d4d", marginTop: "6px" }}>⚠️ {aiError}</p>
-        )}
+          {aiError && (
+            <p style={{ color: "#ff4d4d", marginTop: "6px" }}>⚠️ {aiError}</p>
+          )}
 
-        {topResult && (
-          <p style={{ marginTop: "6px" }}>
-            🎨 AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
-          </p>
-        )}
-      </div>
+          {topResult && (
+            <p style={{ marginTop: "6px" }}>
+              🎨 AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
+            </p>
+          )}
+        </div>
+      )}
 
     </div>
   );
