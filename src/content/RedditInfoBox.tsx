@@ -20,8 +20,8 @@ const RedditInfoBox: React.FC = () => {
     apiKey: "",
   });
 
-  // DEBUG: State to hold the picture URL for debugging
-  const [currentPicUrl, setCurrentPicUrl] = useState<string | null>(null);
+  // Track if a successful API response has been returned
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
   const storage = typeof chrome !== "undefined" ? chrome.storage.local : (window as any).browser?.storage.local;
 
@@ -60,14 +60,19 @@ const RedditInfoBox: React.FC = () => {
     };
   }, []);
 
-  // Helper function to detect and retrieve image URL if available
+  useEffect(() => {
+    if (aiResult) {
+      setHasAnalyzed(true);
+    }
+  }, [aiResult]);
+
   const getImageUrl = (): string | null => {
     if (isOldReddit) {
-      // Look for the img tag with class "preview" on old Reddit
+      // old Reddit
       const img = document.querySelector<HTMLImageElement>("img.preview");
       return img?.src || null;
     } else {
-      // Look for the img tag with id "post-image" on new Reddit
+      // new Reddit
       const img = document.querySelector<HTMLImageElement>("img#post-image");
       return img?.src || null;
     }
@@ -79,16 +84,37 @@ const RedditInfoBox: React.FC = () => {
 
   const handleAiCheckClick = () => {
     if (detectedImageUrl) {
-      setCurrentPicUrl(detectedImageUrl);
       checkImage(detectedImageUrl, settings.apiKey);
     } else {
       alert("No image found on this post to analyze!");
     }
   };
 
-  const topResult = aiResult
-    ? [...aiResult].sort((a, b) => b.score - a.score)[0]
-    : null;
+  // Calculate Human Confidence Score and Category Label
+  const humanScoreData = React.useMemo(() => {
+    if (!aiResult) return null;
+
+    const humanResult = aiResult.find(
+      (item) => item.label.toLowerCase() === "human"
+    );
+    if (!humanResult) return null;
+
+    const percentage = humanResult.score * 100;
+
+    let category = "Highly Likely AI";
+    if (percentage >= 90) {
+      category = "Human";
+    } else if (percentage >= 75) {
+      category = "Possibly AI";
+    } else if (percentage >= 50) {
+      category = "Likely AI";
+    }
+
+    return {
+      percentage: percentage.toFixed(2),
+      category,
+    };
+  }, [aiResult]);
 
   const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
@@ -179,21 +205,24 @@ const RedditInfoBox: React.FC = () => {
       {/* AI Image Post Checker Section - Only renders if this is a picture post */}
       {isPicturePost && (
         <div style={{ marginTop: "10px", borderTop: "1px dashed #ccc", paddingTop: "8px" }}>
-          <button 
-            onClick={handleAiCheckClick} 
-            disabled={aiLoading} 
-            style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
-          >
-            {aiLoading ? "Analyzing Image..." : "Check Image with AI"}
-          </button>
+          {/* Hide button if analysis has already completed successfully */}
+          {!hasAnalyzed && (
+            <button 
+              onClick={handleAiCheckClick} 
+              disabled={aiLoading} 
+              style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
+            >
+              {aiLoading ? "Analyzing Image..." : "Check Image with AI"}
+            </button>
+          )}
 
           {aiError && (
             <p style={{ color: "#ff4d4d", marginTop: "6px" }}>⚠️ {aiError}</p>
           )}
 
-          {topResult && (
+          {humanScoreData && (
             <p style={{ marginTop: "6px" }}>
-              AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
+              Human Confidence: ({humanScoreData.percentage}%); <strong>{humanScoreData.category}</strong> 
             </p>
           )}
         </div>
