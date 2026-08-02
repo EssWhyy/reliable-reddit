@@ -27,7 +27,9 @@ const RedditInfoBox: React.FC = () => {
 
   useEffect(() => {
     if (!storage) return;
-    storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio"], (result: any) => {
+
+    // Fetch initial values on mount
+    storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio", "apiKey"], (result: any) => {
       setSettings({
         isEnabled: result.aiHighlightEnabled ?? true,
         minMonths: result.minMonths ?? 3,
@@ -35,6 +37,27 @@ const RedditInfoBox: React.FC = () => {
         apiKey: result.apiKey ?? "",
       });
     });
+
+    // Listen for real-time changes from the popup script
+    const storageListener = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+
+      if (areaName !== "local") return;
+
+      setSettings((prevSettings) => ({
+        isEnabled: changes.aiHighlightEnabled ? changes.aiHighlightEnabled.newValue : prevSettings.isEnabled,
+        minMonths: changes.minMonths ? changes.minMonths.newValue : prevSettings.minMonths,
+        karmaRatio: changes.karmaRatio ? parseFloat(changes.karmaRatio.newValue) : prevSettings.karmaRatio,
+        apiKey: changes.apiKey ? changes.apiKey.newValue : prevSettings.apiKey,
+      }));
+    };
+
+    const onChangedApi = typeof chrome !== "undefined" ? chrome.storage.onChanged : (window as any).browser?.storage?.onChanged;
+    
+    onChangedApi?.addListener(storageListener);
+
+    return () => {
+      onChangedApi?.removeListener(storageListener);
+    };
   }, []);
 
   // Helper function to detect and retrieve image URL if available
@@ -152,22 +175,6 @@ const RedditInfoBox: React.FC = () => {
           </a>
         </p>
       )}
-
-      {/* ----------------- DEBUG SECTION ----------------- */}
-      <div style={{
-        backgroundColor: "rgba(255, 0, 0, 0.1)",
-        border: "1px dashed red",
-        padding: "6px",
-        marginBottom: "10px",
-        fontSize: "11px",
-        wordBreak: "break-all"
-      }}>
-        <p style={{ margin: 0 }}>🐛 <strong>DEBUG INFO</strong></p>
-        <p style={{ margin: "2px 0 0 0" }}>🔑 <strong>API Key:</strong> {settings.apiKey || "None"}</p>
-        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Image URL:</strong> {currentPicUrl || detectedImageUrl || "Not selected yet"}</p>
-        <p style={{ margin: "2px 0 0 0" }}>🖼️ <strong>Is Picture Post:</strong> {isPicturePost ? "Yes" : "No"}</p>
-      </div>
-      {/* ------------------------------------------------- */}
       
       {/* AI Image Post Checker Section - Only renders if this is a picture post */}
       {isPicturePost && (
@@ -177,7 +184,7 @@ const RedditInfoBox: React.FC = () => {
             disabled={aiLoading} 
             style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
           >
-            {aiLoading ? "🔍 Analyzing Image..." : "🖼️ Check Image with AI"}
+            {aiLoading ? "Analyzing Image..." : "Check Image with AI"}
           </button>
 
           {aiError && (
@@ -186,7 +193,7 @@ const RedditInfoBox: React.FC = () => {
 
           {topResult && (
             <p style={{ marginTop: "6px" }}>
-              🎨 AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
+              AI Image Result: <strong>{topResult.label.toUpperCase()}</strong> ({ (topResult.score * 100).toFixed(2) }%)
             </p>
           )}
         </div>

@@ -11,7 +11,7 @@ export function usePicPostAICheck() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AiCheckResult[] | null>(null);
 
-  const checkImage = async (imageUrl: string, apiKey: string) => { // 👈 Pass apiKey here
+  const checkImage = async (imageUrl: string, apiKey: string) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -23,8 +23,6 @@ export function usePicPostAICheck() {
         console.warn(`${contextTag} Aborted: Missing or invalid API Key.`);
         throw new Error("Missing or invalid API key. Please set it in extension settings.");
       }
-
-      console.log(`${contextTag} Sending image payload to background script...`);
 
       // Send request to background script matching background.ts interface
       let response: any
