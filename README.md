@@ -1,9 +1,12 @@
 # Reliable Reddit: Post & User Insights 
 
-Reliable Reddit is a lightweight browser extension designed to promote information transparency of Reddit users and posts. By surfacing hidden metrics, it helps users distinguish between genuine community engagement and potential manipulation.
+Reliable Reddit is a lightweight browser extension designed to promote information transparency of Reddit users and posts. 
+
+There has been an exponential growth in the social media site in the past few years, resulting in an increase in automated and biased posts, from people trying to farm upvotes or control narratives. By surfacing hidden metrics, it helps users distinguish between genuine community engagement and potential manipulation.
 
 INSTALL FOR:
 [Chrome](https://chromewebstore.google.com/detail/reliable-reddit-post-user/hhhlpbofpofmikalckhplbinjlpflpmm) | [Firefox](https://addons.mozilla.org/en-US/firefox/addon/reliable-reddit-post-insights/)
+
 ________________________________________
 ## ✨ Key Features
 -	📊 Visual Upvote Ratio: See post sentiment and controversiality at a glance with a YouTube-style like/dislike bar on every post
@@ -47,6 +50,8 @@ ________________________________________
 ________________________________________
 ## 🤝 Contributing
 Contributions, improvement and feedback welcome. Feel free to fork and raise an issue/PR in the repo!
+
+If you like my project, consider giving the repo a star or rate on Chrome/Firefox store! Publicity is the best compensation for a free, open-source extension like this one :)
 ________________________________________
 ## 📄 License
 MIT Licence. Feel free to modify, fork or improve wherever you want.
