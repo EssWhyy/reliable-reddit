@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAIMentions, highlightAiBotComments } from "../commentCheck";
 
 export function useCommentAICheck(comments: any[] | null) {
-  const [aiComment, setAiComment] = useState<{ body: string; permalink: string } | null>(null);
+  const [aiCount, setAiCount] = useState<number>(0);
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
@@ -10,7 +10,6 @@ export function useCommentAICheck(comments: any[] | null) {
       setIsEnabled(!!result.aiHighlightEnabled);
     });
 
-    // Check if user toggles popup while page is open
     const listener = (changes: any) => {
       if (changes.aiHighlightEnabled) {
         setIsEnabled(changes.aiHighlightEnabled.newValue);
@@ -23,21 +22,21 @@ export function useCommentAICheck(comments: any[] | null) {
 
   useEffect(() => {
     if (!isEnabled) {
-      setAiComment(null);
+      setAiCount(0);
       return;
     }
 
-    // No extra fetch here — reuses the comment tree usePostVotes already
-    // pulled down from the post's .json endpoint.
-    const result = getAIMentions(comments);
-    setAiComment(result);
+    const result = getAIMentions(comments); 
+    
+    const count = Array.isArray(result) ? result.length : (typeof result === 'number' ? result : 0);
+    setAiCount(count);
 
     const highlightAI = async () => {
       await highlightAiBotComments();
     };
 
     highlightAI();
-  }, [isEnabled, comments]); // Re-run when toggle changes or comments arrive
+  }, [isEnabled, comments]);
 
-  return aiComment;
+  return aiCount;
 }

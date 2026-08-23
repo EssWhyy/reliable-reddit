@@ -8,7 +8,7 @@ import { parse } from 'date-fns';
 const RedditInfoBox: React.FC = () => {
   const { postInfo, error, isOldReddit, comments } = usePostVotes();
   const opData = useOpData(isOldReddit);
-  const aiComment = useCommentAICheck(comments);
+  const aiMentionCount = useCommentAICheck(comments);
 
   // Hook for AI image checking
   const { checkImage, loading: aiLoading, error: aiError, result: aiResult } = usePicPostAICheck();
@@ -66,13 +66,25 @@ const RedditInfoBox: React.FC = () => {
     }
   }, [aiResult]);
 
-  const getImageUrl = (): string | null => {
+const getImageUrl = (): string | null => {
     if (isOldReddit) {
-      // old Reddit
+      // old Reddit single image (carousel does not exist on old reddit)
       const img = document.querySelector<HTMLImageElement>("img.preview");
       return img?.src || null;
     } else {
-      // new Reddit
+      // New Reddit carousel
+      const carouselImg = document.querySelector<HTMLImageElement>(
+        'gallery-carousel li[slot="page-1"] img.media-lightbox-img'
+      );
+      if (carouselImg?.src) return carouselImg.src;
+
+      // Fallback for generic gallery-carousel first image
+      const firstGalleryImg = document.querySelector<HTMLImageElement>(
+        "gallery-carousel img.media-lightbox-img, gallery-carousel img"
+      );
+      if (firstGalleryImg?.src) return firstGalleryImg.src;
+
+      // New Reddit single image standard fallback
       const img = document.querySelector<HTMLImageElement>("img#post-image");
       return img?.src || null;
     }
@@ -193,12 +205,9 @@ const RedditInfoBox: React.FC = () => {
         <p>📉 User has low comment karma (under {settings.karmaRatio}% of post karma)</p>
       )}
 
-      {settings.isEnabled && aiComment && (
+      {settings.isEnabled && aiMentionCount > 0 && (
         <p>
-          🤖 &apos;AI/Bot&apos; mentioned in{" "}
-          <a href={aiComment.permalink} target="_blank" rel="noopener noreferrer" style={{ color: "#FF4500" }}>
-            this comment
-          </a>
+          🤖 &apos;AI/Bot&apos; mentioned in {aiMentionCount} comment{aiMentionCount > 1 ? "s" : ""}
         </p>
       )}
       
@@ -212,7 +221,7 @@ const RedditInfoBox: React.FC = () => {
               disabled={aiLoading} 
               style={{ ...buttonStyle, opacity: aiLoading ? 0.6 : 1 }}
             >
-              {aiLoading ? "Analyzing Image..." : "Check Image with AI"}
+              {aiLoading ? "Analyzing Image..." : "Check Image for GenAI"}
             </button>
           )}
 

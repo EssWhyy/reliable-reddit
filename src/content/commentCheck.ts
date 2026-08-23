@@ -1,10 +1,5 @@
 // Detects AI/Bot Related Mentions in Reddit Comments
 
-interface AiComment {
-  body: string;
-  permalink: string;
-}
-
 interface RedditComment {
   kind: string;
   data: {
@@ -19,44 +14,39 @@ interface RedditComment {
   };
 }
 
-//This simply checks if there are any AI/Bot Mentions
-// Takes the comment tree the caller already fetched (e.g. from usePostVotes'
-// post .json response) instead of re-fetching the same endpoint.
-export function getAIMentions(comments: RedditComment[] | null): AiComment | null {
-  if (!comments || comments.length === 0) return null;
+// Counts all AI/Bot Mentions in the comment tree
+export function getAIMentions(comments: RedditComment[] | null): number {
+  if (!comments || comments.length === 0) return 0;
 
   const regex = /\b(ai|bot)\b/i;
+  let matchCount = 0;
 
-  const traverse = (list: RedditComment[]): AiComment | null => {
+  const traverse = (list: RedditComment[]): void => {
     for (const item of list) {
       if (item.kind !== "t1") continue;
 
       const body = item.data.body ?? "";
       const author = item.data.author ?? "";
 
-      // Skip if author is AutoMod
-      if (author.toLowerCase() === "automoderator") continue;
-      if (regex.test(body)) {
-        return {
-          body,
-          permalink: "https://www.reddit.com" + item.data.permalink,
-        };
+      // Skip AutoMod
+      if (author.toLowerCase() !== "automoderator" && regex.test(body)) {
+        matchCount++;
       }
 
+      // Traverse through nested replies regardless of whether a match was found
       const replies = item.data.replies?.data?.children;
-      if (replies) {
-        const found = traverse(replies);
-        if (found) return found;
+      if (replies && replies.length > 0) {
+        traverse(replies);
       }
     }
-    return null;
   };
 
   try {
-    return traverse(comments);
+    traverse(comments);
+    return matchCount;
   } catch (err) {
     console.error("AI comment check failed", err);
-    return null;
+    return 0;
   }
 }
 
@@ -104,7 +94,6 @@ export async function highlightAiBotComments(): Promise<void> {
     });
 
   try {
-    // Wait for at least one real comment
     await waitForElement(selectors.commentBox);
 
     const commentBoxes = document.querySelectorAll<HTMLElement>(
@@ -113,7 +102,6 @@ export async function highlightAiBotComments(): Promise<void> {
 
     commentBoxes.forEach(commentBox => {
       if (commentBox.dataset.aiHighlighted) return;
-
 
       // --- MODERATOR & APP EXCLUSION LOGIC ---
       let isModOrApp = false;
