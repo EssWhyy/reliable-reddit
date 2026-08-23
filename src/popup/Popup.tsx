@@ -11,6 +11,10 @@ const Popup: React.FC = () => {
   const [isEnabled, setIsEnabled] = useState(true);
   const [months, setMonths] = useState<number>(3);
   const [karmaPercent, setKarmaPercent] = useState<string>("1");
+  const [apiKey, setApiKey] = useState<string>("");
+  const [savedApiKey, setSavedApiKey] = useState<string>("");
+  const [apiKeySaved, setApiKeySaved] = useState(false);
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
 
   // compatibility with firefox
   const storage = typeof chrome !== "undefined" ? chrome.storage.local : (window as any).browser?.storage.local;
@@ -19,10 +23,14 @@ const Popup: React.FC = () => {
   useEffect(() => {
     if (!storage) return;
 
-    storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio"], (result: any) => {
+    storage.get(["aiHighlightEnabled", "minMonths", "karmaRatio", "apiKey"], (result: any) => {
       if (result.aiHighlightEnabled !== undefined) setIsEnabled(result.aiHighlightEnabled);
       if (result.minMonths !== undefined) setMonths(result.minMonths);
       if (result.karmaRatio !== undefined) setKarmaPercent(result.karmaRatio);
+      if (result.apiKey !== undefined) {
+        setApiKey(result.apiKey);
+        setSavedApiKey(result.apiKey);
+      }
     });
   }, []);
 
@@ -49,6 +57,29 @@ const Popup: React.FC = () => {
   };
 
 
+  const handleApiKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setApiKey(event.target.value);
+    setApiKeySaved(false);
+  };
+
+  const handleApiKeySave = () => {
+    storage?.set({ apiKey }, () => {
+      setSavedApiKey(apiKey);
+      setApiKeySaved(true);
+      setIsEditingApiKey(false);
+    });
+  };
+
+  const handleApiKeyEdit = () => {
+    setIsEditingApiKey(true);
+    setApiKeySaved(false);
+  };
+
+  const maskApiKey = (key: string) => {
+    if (key.length <= 6) return key;
+    return `${key.slice(0, 6)}${"•".repeat(Math.max(key.length - 6, 8))}`;
+  };
+
   const handleRedirect = () => {
     window.open("https://github.com/EssWhyy/reliable-reddit", "_blank");
   };
@@ -70,7 +101,7 @@ const Popup: React.FC = () => {
       <Box mt={2} sx={{ textAlign: "left" }}>
         <FormControlLabel
           control={<Checkbox checked={isEnabled} onChange={handleToggle} color="primary" />}
-          label={<Typography variant="body2">Highlight AI mentions</Typography>}
+          label={<Typography variant="body2">Highlight AI mentions in comments</Typography>}
         />
       </Box>
       
@@ -105,6 +136,55 @@ const Popup: React.FC = () => {
           />
           <Typography variant="body2">% of post karma</Typography>
         </Box>
+      </Box>
+
+      {/* API Key Section */}
+      <Box mt={2} sx={{ textAlign: "left" }}>
+        <Typography variant="body2" gutterBottom>HuggingFace API Key (for AI content detection)</Typography>
+        {!isEditingApiKey && savedApiKey ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TextField
+              size="small"
+              variant="outlined"
+              value={maskApiKey(savedApiKey)}
+              inputProps={{ readOnly: true }}
+              fullWidth
+              sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace', letterSpacing: 1 } }}
+            />
+            <Button
+              variant="outlined"
+              onClick={handleApiKeyEdit}
+              sx={{ textTransform: "none", whiteSpace: "nowrap" }}
+            >
+              Edit
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TextField
+              size="small"
+              variant="outlined"
+              type="password"
+              value={apiKey}
+              onChange={handleApiKeyChange}
+              placeholder="Enter API key"
+              fullWidth
+              autoFocus={isEditingApiKey}
+            />
+            <Button
+              variant="contained"
+              onClick={handleApiKeySave}
+              sx={{ textTransform: "none", whiteSpace: "nowrap" }}
+            >
+              Save
+            </Button>
+          </Box>
+        )}
+        {apiKeySaved && (
+          <Typography variant="caption" color="success.main">
+            Saved!
+          </Typography>
+        )}
       </Box>
 
       <Box mt={3}>

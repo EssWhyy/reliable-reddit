@@ -1,10 +1,5 @@
 // Detects AI/Bot Related Mentions in Reddit Comments
 
-interface AiComment {
-  body: string;
-  permalink: string;
-}
-
 interface RedditComment {
   kind: string;
   data: {
@@ -19,52 +14,39 @@ interface RedditComment {
   };
 }
 
-//This simply checks if there are any AI/Bot Mentions
-export async function getAIMentions(): Promise<AiComment | null> {
-  try {
-    const cleanUrl = window.location.href
-      .replace(/\/deleted_by_user\/?$/, "")
-      .replace(/\/$/, "");
-      
-    const url = cleanUrl + ".json";
-    const res = await fetch(url);
+// Counts all AI/Bot Mentions in the comment tree
+export function getAIMentions(comments: RedditComment[] | null): number {
+  if (!comments || comments.length === 0) return 0;
 
-    if (!res.ok) return null;
+  const regex = /\b(ai|bot)\b/i;
+  let matchCount = 0;
 
-    const data = await res.json();
+  const traverse = (list: RedditComment[]): void => {
+    for (const item of list) {
+      if (item.kind !== "t1") continue;
 
-    const comments: RedditComment[] = data[1]?.data?.children ?? [];
-    const regex = /\b(ai|bot)\b/i;
+      const body = item.data.body ?? "";
+      const author = item.data.author ?? "";
 
-    const traverse = (list: RedditComment[]): AiComment | null => {
-      for (const item of list) {
-        if (item.kind !== "t1") continue;
-
-        const body = item.data.body ?? "";
-        const author = item.data.author ?? "";
-
-        // Skip if author is AutoMod
-        if (author.toLowerCase() === "automoderator") continue;
-        if (regex.test(body)) {
-          return {
-            body,
-            permalink: "https://www.reddit.com" + item.data.permalink,
-          };
-        }
-
-        const replies = item.data.replies?.data?.children;
-        if (replies) {
-          const found = traverse(replies);
-          if (found) return found;
-        }
+      // Skip AutoMod
+      if (author.toLowerCase() !== "automoderator" && regex.test(body)) {
+        matchCount++;
       }
-      return null;
-    };
 
-    return traverse(comments);
+      // Traverse through nested replies regardless of whether a match was found
+      const replies = item.data.replies?.data?.children;
+      if (replies && replies.length > 0) {
+        traverse(replies);
+      }
+    }
+  };
+
+  try {
+    traverse(comments);
+    return matchCount;
   } catch (err) {
     console.error("AI comment check failed", err);
-    return null;
+    return 0;
   }
 }
 
@@ -112,7 +94,6 @@ export async function highlightAiBotComments(): Promise<void> {
     });
 
   try {
-    // Wait for at least one real comment
     await waitForElement(selectors.commentBox);
 
     const commentBoxes = document.querySelectorAll<HTMLElement>(
@@ -121,7 +102,6 @@ export async function highlightAiBotComments(): Promise<void> {
 
     commentBoxes.forEach(commentBox => {
       if (commentBox.dataset.aiHighlighted) return;
-
 
       // --- MODERATOR & APP EXCLUSION LOGIC ---
       let isModOrApp = false;
