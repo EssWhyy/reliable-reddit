@@ -1,9 +1,40 @@
 import React, { useEffect, useState, ChangeEvent } from "react";
 import { 
   Button, Typography, Box, Paper, FormControlLabel, 
-  Checkbox, MenuItem, Select, TextField, SelectChangeEvent 
+  Checkbox, MenuItem, Select, TextField, SelectChangeEvent,
+  Tooltip, IconButton
 } from "@mui/material";
-import { FaReddit, FaGithub } from "react-icons/fa";
+import { FaReddit, FaGithub, FaQuestionCircle } from "react-icons/fa";
+
+// Detailed custom content component for the Tooltip
+const HuggingFaceInfoContent = () => (
+  <Box sx={{ p: 1, maxWidth: 300 }}>
+    <Typography variant="subtitle2" sx={{ fontWeight: "bold", mb: 0.5 }}>
+      How to create a HuggingFace Read Token:
+    </Typography>
+    <Box component="ol" sx={{ pl: 2, m: 0, mb: 1.5, fontSize: "0.75rem" }}>
+      <li>Log in or sign up at <strong>huggingface.co</strong>.</li>
+      <li>Click your profile avatar (top right) → <strong>Settings</strong>.</li>
+      <li>Select <strong>Access Tokens</strong> from the left menu.</li>
+      <li>Click <strong>Create new token</strong>.</li>
+      <li>Set token type to <strong>Read</strong>, give it a name, and save.</li>
+    </Box>
+
+    <Typography 
+      variant="caption" 
+      sx={{ 
+        display: "block", 
+        fontStyle: "italic", 
+        bgcolor: "rgba(255, 255, 255, 0.1)", 
+        p: 0.8, 
+        borderRadius: 1,
+        borderLeft: "3px solid #00e676"
+      }}
+    >
+      <strong>Privacy Disclaimer:</strong> Your API token is stored locally in your browser storage. It is used exclusively for direct client-side requests to a Hugging Face API server for to detect AI generated picture posts. It is never sent to or read by external servers.
+    </Typography>
+  </Box>
+);
 
 const Popup: React.FC = () => {
 
@@ -140,7 +171,15 @@ const Popup: React.FC = () => {
 
       {/* API Key Section */}
       <Box mt={2} sx={{ textAlign: "left" }}>
-        <Typography variant="body2" gutterBottom>HuggingFace API Key (for AI content detection)</Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
+          <Typography variant="body2">HuggingFace Read Token (for AI detection)</Typography>
+          <Tooltip title={<HuggingFaceInfoContent />} arrow placement="top">
+            <IconButton size="small" sx={{ padding: 0.2 }}>
+              <FaQuestionCircle size={14} color="#666" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
         {!isEditingApiKey && savedApiKey ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TextField
@@ -167,7 +206,7 @@ const Popup: React.FC = () => {
               type="password"
               value={apiKey}
               onChange={handleApiKeyChange}
-              placeholder="Enter API key"
+              placeholder="Enter HF Read Token"
               fullWidth
               autoFocus={isEditingApiKey}
             />
