@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { getAIMentions, highlightAiBotComments } from "../commentCheck";
+import { getAIMentions, highlightAiBotComments, removeAiHighlights } from "../commentCheck";
 
 export function useCommentAICheck(comments: any[] | null) {
   const [aiCount, setAiCount] = useState<number>(0);
-  const [isEnabled, setIsEnabled] = useState<boolean>(true);
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null); // Start with null to wait for storage read
 
   useEffect(() => {
     chrome.storage.local.get(["aiHighlightEnabled"], (result) => {
-      setIsEnabled(!!result.aiHighlightEnabled);
+      setIsEnabled(result.aiHighlightEnabled ?? true);
     });
 
     const listener = (changes: any) => {
-      if (changes.aiHighlightEnabled) {
+      if (changes.aiHighlightEnabled !== undefined) {
         setIsEnabled(changes.aiHighlightEnabled.newValue);
       }
     };
@@ -21,21 +21,20 @@ export function useCommentAICheck(comments: any[] | null) {
   }, []);
 
   useEffect(() => {
+    if (isEnabled === null) return;
+
     if (!isEnabled) {
       setAiCount(0);
+      removeAiHighlights();
       return;
     }
 
     const result = getAIMentions(comments); 
-    
-    const count = Array.isArray(result) ? result.length : (typeof result === 'number' ? result : 0);
+    const count = typeof result === 'number' ? result : 0;
     setAiCount(count);
 
-    const highlightAI = async () => {
-      await highlightAiBotComments();
-    };
+    highlightAiBotComments();
 
-    highlightAI();
   }, [isEnabled, comments]);
 
   return aiCount;
