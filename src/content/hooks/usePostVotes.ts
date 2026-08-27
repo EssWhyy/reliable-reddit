@@ -30,11 +30,11 @@ export function usePostVotes() {
         const data = await response.json();
 
         const postData = data[0].data.children[0].data;
-        const ratio = postData.upvote_ratio;
-        const ups = postData.ups;
+        const ratio = postData.upvote_ratio; // % upvoted from 0 to 1
+        const ups = postData.ups; // displayed karma score
 
-        const estimatedUpvotes = Math.round(ups / ratio);
-        const estimatedDownvotes = estimatedUpvotes - ups;
+        const estimatedUpvotes = Math.round((ratio * ups)/(2 * ratio - 1))
+        const estimatedDownvotes = estimatedUpvotes - ups
 
         setPostInfo({
           ratio,
