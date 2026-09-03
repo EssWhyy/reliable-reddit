@@ -18,6 +18,8 @@ ________________________________________
 ________________________________________
 ## Preview
 <img width="2003" height="1178" alt="Possible AI Post" src="https://github.com/user-attachments/assets/82d9d44f-cc5e-41d3-a68b-1ca73818528b" />
+<img width="1280" height="704" alt="Screenshot 5" src="https://github.com/user-attachments/assets/5ed54c7d-e0ba-4665-ad2d-3d2af2ee4b3b" />
+
 
 ________________________________________
 ## Installation
