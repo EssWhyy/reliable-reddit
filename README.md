@@ -8,6 +8,7 @@ The social media site experienced mass user growth in the past few years, result
 INSTALL FOR:
 [Chrome](https://chromewebstore.google.com/detail/reliable-reddit-post-user/hhhlpbofpofmikalckhplbinjlpflpmm) | [Firefox](https://addons.mozilla.org/en-US/firefox/addon/reliable-reddit-post-insights/)
 
+[![GitHub stars](https://img.shields.io/github/stars/EssWhyy/reliable-reddit?style=social)](https://github.com/EssWhyy/reliable-reddit)
 ________________________________________
 ## Key Features
 -	📊 Visual Upvote Ratio: See post sentiment and controversiality at a glance with a YouTube-style like/dislike bar on every post
