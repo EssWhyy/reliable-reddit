@@ -53,29 +53,96 @@ export function useOpData(isOldReddit: boolean) {
         return;
       }
 
+      // New Reddit: Extract information directly from DOM elements
+      if (!isOldReddit) {
+        const extractFromDOM = () => {
+          const karmaElements = document.querySelectorAll('[data-testid="karma-number"]');
+          const cakeDayEl = document.querySelector('[data-testid="cake-day"]');
+
+          if (karmaElements.length >= 2 && cakeDayEl) {
+            const postKarma = parseInt(karmaElements[0].textContent?.replace(/,/g, "").trim() || "0", 10);
+            const commentKarma = parseInt(karmaElements[1].textContent?.replace(/,/g, "").trim() || "0", 10);
+            const totalKarma = postKarma + commentKarma;
+
+            let cakeDay = cakeDayEl.textContent?.trim() || "N/A";
+            const datetimeAttr = cakeDayEl.getAttribute("datetime");
+            if (datetimeAttr) {
+              const parsedDate = new Date(datetimeAttr);
+              if (!isNaN(parsedDate.getTime())) {
+                cakeDay = parsedDate.toLocaleDateString();
+              }
+            }
+
+            return {
+              karma: totalKarma,
+              commentKarma,
+              postKarma,
+              cakeDay,
+              isHistoryHidden: false,
+              isDeletedUser: false
+            };
+          }
+          return null;
+        };
+
+        let opDataResult = extractFromDOM();
+        if (!opDataResult) {
+          await new Promise<void>((resolve) => {
+            const observer = new MutationObserver(() => {
+              opDataResult = extractFromDOM();
+              if (opDataResult) {
+                observer.disconnect();
+                resolve();
+              }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            setTimeout(() => {
+              observer.disconnect();
+              resolve();
+            }, 3000);
+          });
+          opDataResult = extractFromDOM();
+        }
+
+        if (opDataResult) {
+          setOpData(opDataResult);
+
+          if (!document.getElementById("op-metadata-tracker")) {
+            const info = document.createElement("span");
+            info.id = "op-metadata-tracker";
+            info.textContent = ` • Cake Day: ${opDataResult.cakeDay} • ${opDataResult.postKarma} post karma • ${opDataResult.commentKarma} comment karma`;
+            info.style.fontWeight = "bold";
+            tracker.appendChild(info);
+          }
+        }
+        return;
+      }
+
+      // Old Reddit: about.json
       try {
-        const u = new URL(window.location.href.replace(/\/$/, ""));
-        const baseUrl = u.hostname.includes("old.reddit.com") 
-          ? "https://old.reddit.com" 
-          : "https://www.reddit.com";
+        const baseUrl = "https://old.reddit.com";
+        const resp = await fetch(`${baseUrl}/user/${username}/about.json`, {
+          credentials: "include",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
 
-        const resp = await fetch(`${baseUrl}/user/${username}/about.json`);
-        if (!resp.ok) return;
+        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
 
-        const data = (await resp.json()).data;
+        const jsonBody = await resp.json();
+        const data = jsonBody.data;
         const cakeDay = new Date(data.created_utc * 1000).toLocaleDateString();
         const hasKarma = data.link_karma > 0 || data.comment_karma > 0;
 
-        const initialOpData: OpData = {
-          karma: data.total_karma,
+        setOpData({
+          karma: data.total_karma ?? (data.link_karma + data.comment_karma),
           commentKarma: data.comment_karma,
           postKarma: data.link_karma,
           cakeDay: cakeDay,
           isHistoryHidden: false,
           isDeletedUser: false
-        };
-        
-        setOpData(initialOpData);
+        });
 
         if (!document.getElementById("op-metadata-tracker")) {
           const info = document.createElement("span");
@@ -87,11 +154,12 @@ export function useOpData(isOldReddit: boolean) {
 
         if (hasKarma) {
           try {
-            const historyResp = await fetch(`${baseUrl}/user/${username}/submitted.json?limit=1`);
+            const historyResp = await fetch(`${baseUrl}/user/${username}/submitted.json?limit=1`, {
+              credentials: "include"
+            });
             if (historyResp.ok) {
               const historyData = await historyResp.json();
               const isHidden = historyData.data.children.length === 0;
-
               if (isHidden) {
                 setOpData(prev => prev ? { ...prev, isHistoryHidden: true } : null);
               }
@@ -102,7 +170,7 @@ export function useOpData(isOldReddit: boolean) {
         }
 
       } catch (e) {
-        console.error("Failed to fetch OP data", e);
+        console.error("Failed to fetch OP data via old.reddit", e);
       }
     };
 
