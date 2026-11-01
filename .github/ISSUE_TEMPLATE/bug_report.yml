@@ -1,0 +1,66 @@
+name: Bug Report
+description: Create a report to help reproduce and fix a bug
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting an issue! Please provide as much detail as possible to help reproduce and resolve it.
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Explain how to recreate the bug step-by-step.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots-logs
+    attributes:
+      label: Screenshots & Console / Terminal Logs (Optional)
+      description: Drag and drop screenshots, or paste relevant error logs/stack traces here.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment Details (Optional)
+      description: E.g., OS, Browser, Node/Python/Framework version, runtime details.
+      placeholder: e.g., Chrome 124, Node v20.11, macOS Sonoma
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have verified this issue occurs on the latest version of the repository.
+          required: true
+        - label: I am willing to submit a Pull Request to fix this bug.
+          required: false

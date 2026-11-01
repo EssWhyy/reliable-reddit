@@ -1,0 +1,35 @@
+name: Feature Request / Improvement
+description: Propose an idea or area of improvement for the project
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to suggest an improvement!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: What problem does this solve, or why is this improvement needed?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you envision this working?
+    validations:
+      required: true
+  - type: textarea
+    id: technical-context
+    attributes:
+      label: Technical Details & Hints (Optional)
+      description: Relevant files, APIs, or architectural notes for implementation.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Acceptance Criteria Checklist
+      options:
+        - label: I am willing to submit a Pull Request for this issue.
