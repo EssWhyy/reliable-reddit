@@ -11,7 +11,7 @@ const RedditInfoBox: React.FC = () => {
   const aiMentionCount = useCommentAICheck(comments);
 
   // Hook for AI image checking
-  const { checkImage, loading: aiLoading, error: aiError, result: aiResult } = usePicPostAICheck();
+  const { checkImage, loading: aiLoading, error: aiError, result: aiResult, reset: resetAiCheck} = usePicPostAICheck();
 
   const [settings, setSettings] = useState({
     isEnabled: true,
@@ -66,6 +66,8 @@ const RedditInfoBox: React.FC = () => {
     }
   }, [aiResult]);
 
+
+
 const getImageUrl = (): string | null => {
     if (isOldReddit) {
       // old Reddit single image (carousel does not exist on old reddit)
@@ -101,6 +103,12 @@ const getImageUrl = (): string | null => {
       alert("No image found on this post to analyze!");
     }
   };
+
+  useEffect(() => {
+    setHasAnalyzed(false);
+    resetAiCheck();
+  }, [detectedImageUrl]);
+
 
   // Calculate Human Confidence Score and Category Label
   const humanScoreData = React.useMemo(() => {

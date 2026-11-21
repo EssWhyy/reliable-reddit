@@ -5,11 +5,11 @@
   "description": "Get useful info on Reddit posts & users, for New & Old Reddit desktop UI.",
   "permissions": ["storage"],
   "host_permissions": [
+    "https://esswhyy-reliable-reddit-ai.hf.space/*",
     "https://api-inference.huggingface.co/*",
     "https://router.huggingface.co/*",
     "https://*.redd.it/*",
-    "https://preview.redd.it/*",
-    "https://router.huggingface.co/*"
+    "https://preview.redd.it/*"
   ],
   "background": {
     "service_worker": "dist/src/background/background.js",
@@ -36,7 +36,7 @@
       "run_at": "document_idle"
     }
   ],
-  "icons": { 
+  "icons": {
     "16": "images/icon_16x16.png",
     "32": "images/icon_32x32.png",
     "48": "images/icon_48x48.png",
