@@ -1,0 +1,7 @@
+torch
+torchvision
+sentence-transformers[image]
+transformers>=4.51.0
+huggingface_hub
+pillow
+gradio
