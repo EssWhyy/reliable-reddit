@@ -19,7 +19,8 @@ ________________________________________
 ________________________________________
 ## Preview
 <img width="2003" height="1178" alt="Possible AI Post" src="https://github.com/user-attachments/assets/82d9d44f-cc5e-41d3-a68b-1ca73818528b" />
-<img width="1280" height="704" alt="Screenshot 5" src="https://github.com/user-attachments/assets/5ed54c7d-e0ba-4665-ad2d-3d2af2ee4b3b" />
+<img width="1163" height="789" alt="Screenshot 2026-11-21 at 5 47 09 PM copy" src="https://github.com/user-attachments/assets/4ed0fdea-d264-4a7a-89bf-e656b56fc349" />
+
 
 
 ________________________________________
